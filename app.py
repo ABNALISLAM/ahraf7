@@ -5,7 +5,7 @@ import os
 import random
 
 # -------------------------------------------------------------
-# 1. إعدادات الصفحة والتصميم العربي الخالص 100%
+# 1. إعدادات الصفحة وتصميم الواجهة (جداول ملونة ومريحة بصرياً)
 # -------------------------------------------------------------
 st.set_page_config(
     page_title="مكتبة الأحرف السبعة | لعلوم القرآن والقراءات",
@@ -50,6 +50,38 @@ st.markdown("""
     .book-cat { font-size: 13px; color: #1F5E3B; background-color: #E8F5E9; padding: 3px 10px; border-radius: 12px; display: inline-block; font-weight: bold; }
     .book-price { font-size: 22px; font-weight: bold; color: #B8860B; margin-top: 10px; }
     .edition-badge { background-color: #FFF3CD; color: #856404; padding: 3px 8px; border-radius: 8px; font-size: 13px; font-weight: bold; display: inline-block; }
+
+    /* Custom Styling for Tables (Zebra Striping & Colored Headers) */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        direction: rtl;
+        text-align: right;
+        background-color: #FFFFFF;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    th {
+        background-color: #0B3C26 !important;
+        color: #FFD700 !important;
+        padding: 12px 15px;
+        font-size: 15px;
+        font-family: 'Amiri', serif;
+        border-bottom: 2px solid #072A1B;
+    }
+    td {
+        padding: 10px 15px;
+        border-bottom: 1px solid #EAEAEA;
+        color: #333333;
+        font-size: 14px;
+    }
+    tr:nth-child(even) {
+        background-color: #F2F7F4 !important; /* صفوف ملونة بتدرج هادئ لسهولة البصر */
+    }
+    tr:hover {
+        background-color: #E8F5E9 !important; /* تلوين خفيف عند المرور بالماوس */
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -57,7 +89,7 @@ if not os.path.exists("uploads"):
     os.makedirs("uploads")
 
 # -------------------------------------------------------------
-# 2. قاعدة البيانات الشاملة النهائية (50 كتاباً وطبعة معتمدة)
+# 2. قاعدة البيانات الشاملة (50 كتاباً وطبعة معتمدة)
 # -------------------------------------------------------------
 if 'inventory' not in st.session_state:
     st.session_state.inventory = pd.DataFrame([
@@ -152,7 +184,7 @@ st.sidebar.title("📌 القائمة الرئيسية")
 mode = st.sidebar.radio("اختر الواجهة المطلوبة:", ["🛍️ المتجر الإلكتروني (للعملاء والزوار)", "🔒 لوحة تحكم الإدارة (خاصة بالمالك)"])
 
 # =============================================================
-# 🛍️ الواجهة الأولى: المتجر الإلكتروني العربي
+# 🛍️ الواجهة الأولى: المتجر الإلكتروني
 # =============================================================
 if mode == "🛍️ المتجر الإلكتروني (للعملاء والزوار)":
     st.subheader("🔍 البحث والتصفح في أروقة المكتبة")
@@ -229,7 +261,7 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
     st.markdown("## 🛒 سلة التسوق وإتمام الطلب")
     if st.session_state.customer_cart:
         cart_df = pd.DataFrame(st.session_state.customer_cart)
-        st.table(cart_df[['عنوان الكتاب', 'سعر القطعة', 'الكمية', 'الإجمالي']])
+        st.markdown(cart_df.to_html(index=False, escape=False), unsafe_allow_html=True)
         
         books_total = cart_df['الإجمالي'].sum()
         shipping_cost = 60.0
@@ -261,7 +293,7 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
         st.info("سلة التسوق فارغة حالياً.")
 
 # =============================================================
-# 🔒 الواجهة الثانية: لوحة تحكم الإدارة
+# 🔒 الواجهة الثانية: لوحة تحكم الإدارة (مع جداول ملونة ومريحة)
 # =============================================================
 else:
     st.subheader("🔒 لوحة إدارة المكتبة والمخزون")
@@ -279,7 +311,7 @@ else:
         
         tab1, tab2, tab3 = st.tabs([
             "📋 طلبات الشراء الواردة", 
-            "📦 جرد المخزون الحالي (الكتب والطبعات)", 
+            "📦 جرد المخزون الحالي (جداول ملونة ومنسقة)", 
             "➕ إضافة كتاب / طبعة جديدة بالباركود"
         ])
 
@@ -287,13 +319,16 @@ else:
             st.markdown("### 📋 قائمة الطلبات الواردة")
             if st.session_state.orders:
                 orders_df = pd.DataFrame(st.session_state.orders)
-                st.table(orders_df[['رقم_الطلب', 'التاريخ', 'اسم_العميل', 'الهاتف', 'الإجمالي', 'حالة_الطلب']])
+                cols_to_show = [c for c in ['رقم_الطلب', 'التاريخ', 'اسم_العميل', 'الهاتف', 'الإجمالي', 'حالة_الطلب'] if c in orders_df.columns]
+                st.markdown(orders_df[cols_to_show].to_html(index=False, escape=False), unsafe_allow_html=True)
             else:
                 st.info("لا توجد طلبات جديدة.")
 
         with tab2:
             st.markdown("### 📦 سجل مخزون المكتبة الكامل (50 عنواناً وطبعة)")
-            st.table(st.session_state.inventory)
+            st.markdown("*(تم تلوين الجدول بصفوف متناوبّة لراحة العين وسهولة القراءة)*")
+            # عرض الجدول بتصميم HTML الملون والمريح بصرياً
+            st.markdown(st.session_state.inventory.to_html(index=False, escape=False), unsafe_allow_html=True)
 
         with tab3:
             st.markdown("### ➕ إضافة طبعة جديدة أو كتاب جديد مع توليد باركود")
