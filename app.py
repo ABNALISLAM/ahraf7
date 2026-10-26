@@ -51,7 +51,7 @@ if not os.path.exists("uploads"):
     os.makedirs("uploads")
 
 # -------------------------------------------------------------
-# 2. تهيئة قاعدة البيانات بمكتبة القراءات والمتون الأساسية
+# 2. تهيئة قاعدة البيانات الافتراضية
 # -------------------------------------------------------------
 if 'inventory' not in st.session_state:
     st.session_state.inventory = pd.DataFrame([
@@ -73,74 +73,10 @@ if 'inventory' not in st.session_state:
         },
         {
             "id": 3, 
-            "title": "متن الدرة المضيئة في القراءات الثلاث المتممة للعشر", 
+            "title": "متن الدرة المضيئة في القراءات الثلاث", 
             "buy_price": 50.0, "sell_price": 70.0, "qty": 20, 
             "category": "المتون", 
             "author": "الإمام ابن الجزري", 
-            "image": ""
-        },
-        {
-            "id": 4, 
-            "title": "متن طيبة النشر في القراءات العشر", 
-            "buy_price": 90.0, "sell_price": 120.0, "qty": 25, 
-            "category": "المتون", 
-            "author": "الإمام ابن الجزري", 
-            "image": ""
-        },
-        {
-            "id": 5, 
-            "title": "متن المقدمة الجزرية في تجود القرآن", 
-            "buy_price": 30.0, "sell_price": 45.0, "qty": 40, 
-            "category": "المتون", 
-            "author": "الإمام ابن الجزري", 
-            "image": ""
-        },
-        {
-            "id": 6, 
-            "title": "الوافي في شرح الشاطبية في القراءات السبع", 
-            "buy_price": 220.0, "sell_price": 270.0, "qty": 12, 
-            "category": "الشروحات", 
-            "author": "د. عبد الفتاح القاضي", 
-            "image": ""
-        },
-        {
-            "id": 7, 
-            "title": "البرهان في تجويد القرآن (مع شرح الجزرية)", 
-            "buy_price": 100.0, "sell_price": 130.0, "qty": 15, 
-            "category": "الشروحات", 
-            "author": "الشيخ محمد الصادق قمحاوي", 
-            "image": ""
-        },
-        {
-            "id": 8, 
-            "title": "كتاب قالون عن نافع (سلسلة تقريب القراءات)", 
-            "buy_price": 110.0, "sell_price": 140.0, "qty": 18, 
-            "category": "سلسلة ضمرة", 
-            "author": "الشيخ توفيق ضمرة", 
-            "image": ""
-        },
-        {
-            "id": 9, 
-            "title": "مقنع الداني في رسم المصاحف العثمانية", 
-            "buy_price": 150.0, "sell_price": 190.0, "qty": 10, 
-            "category": "رسم وضبط المصحف", 
-            "author": "الإمام أبو عمرو الداني", 
-            "image": ""
-        },
-        {
-            "id": 10, 
-            "title": "التنزيل في رسم المصحف وضبطه", 
-            "buy_price": 130.0, "sell_price": 170.0, "qty": 10, 
-            "category": "رسم وضبط المصحف", 
-            "author": "د. أحمد حسن فرحات", 
-            "image": ""
-        },
-        {
-            "id": 11, 
-            "title": "ألفية ابن مالك في النحو والصرف", 
-            "buy_price": 60.0, "sell_price": 80.0, "qty": 25, 
-            "category": "كتب اللغة والنحو", 
-            "author": "الإمام ابن مالك الطائي", 
             "image": ""
         }
     ])
@@ -177,13 +113,13 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء)":
     with col_search1:
         search_kw = st.text_input("ابحث عن كتاب، مؤلف، أو موضوع:", "", placeholder="مثال: الشاطبية، الجزرية، القاضي...")
     with col_search2:
-        categories = ["الكل"] + list(st.session_state.inventory['category'].unique())
+        categories = ["الكل"] + list(st.session_state.inventory['category'].unique()) if 'category' in st.session_state.inventory.columns else ["الكل"]
         selected_cat = st.selectbox("التصنيف:", categories)
 
     # Filtering Books
     df_books = st.session_state.inventory.copy()
     if search_kw:
-        df_books = df_books[df_books['title'].str.contains(search_kw, case=False) | df_books['author'].str.contains(search_kw, case=False)]
+        df_books = df_books[df_books['title'].str.contains(search_kw, case=False, na=False) | df_books['author'].str.contains(search_kw, case=False, na=False)]
     if selected_cat != "الكل":
         df_books = df_books[df_books['category'] == selected_cat]
 
@@ -196,34 +132,35 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء)":
         col_idx = idx % 2
         with cols[col_idx]:
             # Display image if exists
-            if book.get('image') and os.path.exists(book['image']):
-                st.image(book['image'], use_container_width=True)
+            img_path = str(book.get('image', ''))
+            if img_path and os.path.exists(img_path):
+                st.image(img_path, use_container_width=True)
             
             st.markdown(f"""
             <div class="book-card">
-                <div class="book-title">{book['title']}</div>
-                <div style="color: #555; font-size: 14px;">المؤلف/المحقق: {book['author']}</div>
-                <span class="book-cat">{book['category']}</span>
-                <div class="book-price">{book['sell_price']:,.2f} ج.م</div>
+                <div class="book-title">{book.get('title', '')}</div>
+                <div style="color: #555; font-size: 14px;">المؤلف/المحقق: {book.get('author', '')}</div>
+                <span class="book-cat">{book.get('category', 'أخرى')}</span>
+                <div class="book-price">{float(book.get('sell_price', 0)):,.2f} ج.م</div>
             </div>
             """, unsafe_allow_html=True)
             
             # Add to Cart Button
-            avail = int(book['qty'])
+            avail = int(book.get('qty', 0))
             if avail > 0:
                 col_btn1, col_btn2 = st.columns([1, 2])
                 with col_btn1:
-                    qty_to_buy = st.number_input("الكمية:", min_value=1, max_value=avail, value=1, key=f"qty_{book['id']}")
+                    qty_to_buy = st.number_input("الكمية:", min_value=1, max_value=max(1, avail), value=1, key=f"qty_{book.get('id', idx)}")
                 with col_btn2:
                     st.write(" ")
-                    if st.button("🛒 إضافة للسلة", key=f"btn_{book['id']}"):
+                    if st.button("🛒 إضافة للسلة", key=f"btn_{book.get('id', idx)}"):
                         st.session_state.customer_cart.append({
-                            "title": book['title'],
-                            "price": book['sell_price'],
+                            "title": book.get('title', ''),
+                            "price": float(book.get('sell_price', 0)),
                             "qty": qty_to_buy,
-                            "total": book['sell_price'] * qty_to_buy
+                            "total": float(book.get('sell_price', 0)) * qty_to_buy
                         })
-                        st.success(f"تمت إضافة '{book['title']}' إلى سلة التسوق!")
+                        st.success(f"تمت إضافة '{book.get('title', '')}' إلى سلة التسوق!")
             else:
                 st.error("عذراً، نفدت الكمية حالياً")
 
@@ -291,7 +228,12 @@ else:
     else:
         st.sidebar.button("🚪 تسجيل الخروج", on_click=lambda: st.session_state.update({"admin_logged_in": False}))
         
-        admin_tab1, admin_tab2, admin_tab3 = st.tabs(["📋 طلبات العملاء الجديدة", "📦 إدارة المخزون والأسعار", "➕ إضافة كتاب جديد"])
+        admin_tab1, admin_tab2, admin_tab3, admin_tab4 = st.tabs([
+            "📋 طلبات العملاء", 
+            "📦 إدارة المخزون", 
+            "➕ إضافة كتاب", 
+            "📊 رفع ملف إكسيل (للـ 500 كتاب)"
+        ])
 
         # Tab 1: Orders
         with admin_tab1:
@@ -316,9 +258,9 @@ else:
             st.markdown("### 📦 المخزون الحالي والأسعار")
             st.dataframe(st.session_state.inventory, use_container_width=True)
 
-        # Tab 3: Add Book with Image Upload
+        # Tab 3: Add Single Book with Image Upload
         with admin_tab3:
-            st.markdown("### ➕ إضافة كتاب جديد للمكتبة مع صورة الغلاف")
+            st.markdown("### ➕ إضافة كتاب فردي مع غلاف")
             with st.form("admin_add_book"):
                 b_title = st.text_input("اسم الكتاب:")
                 b_author = st.text_input("المؤلف / المحقق:")
@@ -326,8 +268,7 @@ else:
                 b_buy = st.number_input("سعر الشراء (التكلفة):", value=50.0)
                 b_sell = st.number_input("سعر البيع للعميل:", value=100.0)
                 b_qty = st.number_input("الكمية بالمخزون:", value=10)
-                
-                b_image = st.file_uploader("صورة غلاف الكتاب (اختر صورة من جهازك):", type=["jpg", "png", "jpeg"])
+                b_image = st.file_uploader("صورة غلاف الكتاب:", type=["jpg", "png", "jpeg"])
                 
                 if st.form_submit_button("حفظ الكتاب بالمكتبة"):
                     image_path = ""
@@ -348,4 +289,33 @@ else:
                         "image": image_path
                     }
                     st.session_state.inventory = pd.concat([st.session_state.inventory, pd.DataFrame([new_row])], ignore_index=True)
-                    st.success(f"تمت إضافة الكتاب '{b_title}' بنجاح مع الصورة!")
+                    st.success(f"تمت إضافة الكتاب '{b_title}' بنجاح!")
+
+        # Tab 4: Excel / CSV Bulk Upload
+        with admin_tab4:
+            st.markdown("### 📊 رفع ملف إكسيل يحتوي على الـ 500 كتاب دفعة واحدة")
+            st.info("قم برفع ملف بصيغة **CSV** يحتوي على الأعمدة التالية تماماً: `title`, `author`, `category`, `buy_price`, `sell_price`, `qty`")
+            
+            uploaded_file = st.file_uploader("اختر ملف الإكسيل/CSV للكتب:", type=["csv", "xlsx"])
+            if uploaded_file is not None:
+                try:
+                    if uploaded_file.name.endswith('.csv'):
+                        df_uploaded = pd.read_csv(uploaded_file)
+                    else:
+                        df_uploaded = pd.read_excel(uploaded_file)
+                    
+                    st.success(f"تم قراءة الملف بنجاح! عدد الكتب المكتشفة: {len(df_uploaded)}")
+                    st.dataframe(df_uploaded.head(), use_container_width=True)
+                    
+                    if st.button("🚀 اعتماد وإضافة كل كتب الملف إلى المخزون"):
+                        # Ensure columns exist
+                        if 'image' not in df_uploaded.columns:
+                            df_uploaded['image'] = ""
+                        if 'id' not in df_uploaded.columns:
+                            df_uploaded['id'] = range(len(st.session_state.inventory) + 1, len(st.session_state.inventory) + 1 + len(df_uploaded))
+                        
+                        st.session_state.inventory = pd.concat([st.session_state.inventory, df_uploaded], ignore_index=True)
+                        st.balloons()
+                        st.success("تمت إضافة جميع الكتب بنجاح إلى متجرك!")
+                except Exception as e:
+                    st.error(f"حدث خطأ أثناء قراءة الملف: {e}")
