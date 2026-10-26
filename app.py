@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import datetime
+import os
 
 # -------------------------------------------------------------
 # 1. إعدادات الصفحة وتهيئة السيو (SEO & Page Config)
@@ -38,7 +39,6 @@ st.markdown("""
         padding: 18px;
         margin-bottom: 15px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        transition: transform 0.2s ease;
     }
     .book-title { font-size: 18px; font-weight: bold; color: #0B3C26; margin-bottom: 5px; }
     .book-cat { font-size: 13px; color: #666; background-color: #E8F5E9; padding: 2px 8px; border-radius: 10px; display: inline-block; }
@@ -46,15 +46,103 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Create uploads folder for images if not exists
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+
 # -------------------------------------------------------------
-# 2. تهيئة قاعدة البيانات المحلية (Session State DB)
+# 2. تهيئة قاعدة البيانات بمكتبة القراءات والمتون الأساسية
 # -------------------------------------------------------------
 if 'inventory' not in st.session_state:
     st.session_state.inventory = pd.DataFrame([
-        {"id": 1, "title": "مصحف الصحابة صغرى أو كبرى", "buy_price": 300.0, "sell_price": 360.0, "qty": 10, "category": "مصاحف القراءات", "author": "الشيخ توفيق ضمرة"},
-        {"id": 2, "title": "متن الشاطبية (حرز الأماني ووجه التهاني)", "buy_price": 70.0, "sell_price": 90.0, "qty": 25, "category": "المتون", "author": "الإمام الشاطبي"},
-        {"id": 3, "title": "الوافي في شرح الشاطبية", "buy_price": 220.0, "sell_price": 270.0, "qty": 8, "category": "الشروحات", "author": "د. عبد الفتاح القاضي"},
-        {"id": 4, "title": "كتاب قالون عن نافع (سلسلة ضمرة)", "buy_price": 110.0, "sell_price": 140.0, "qty": 15, "category": "سلسلة ضمرة", "author": "الشيخ توفيق ضمرة"}
+        {
+            "id": 1, 
+            "title": "مصحف الصحابة (طبعة دار الصحابة / توفيق ضمرة)", 
+            "buy_price": 300.0, "sell_price": 360.0, "qty": 15, 
+            "category": "مصاحف القراءات", 
+            "author": "الشيخ توفيق ضمرة", 
+            "image": ""
+        },
+        {
+            "id": 2, 
+            "title": "متن الشاطبية (حرز الأماني ووجه التهاني في القراءات السبع)", 
+            "buy_price": 70.0, "sell_price": 90.0, "qty": 30, 
+            "category": "المتون", 
+            "author": "الإمام الشاطبي", 
+            "image": ""
+        },
+        {
+            "id": 3, 
+            "title": "متن الدرة المضيئة في القراءات الثلاث المتممة للعشر", 
+            "buy_price": 50.0, "sell_price": 70.0, "qty": 20, 
+            "category": "المتون", 
+            "author": "الإمام ابن الجزري", 
+            "image": ""
+        },
+        {
+            "id": 4, 
+            "title": "متن طيبة النشر في القراءات العشر", 
+            "buy_price": 90.0, "sell_price": 120.0, "qty": 25, 
+            "category": "المتون", 
+            "author": "الإمام ابن الجزري", 
+            "image": ""
+        },
+        {
+            "id": 5, 
+            "title": "متن المقدمة الجزرية في تجود القرآن", 
+            "buy_price": 30.0, "sell_price": 45.0, "qty": 40, 
+            "category": "المتون", 
+            "author": "الإمام ابن الجزري", 
+            "image": ""
+        },
+        {
+            "id": 6, 
+            "title": "الوافي في شرح الشاطبية في القراءات السبع", 
+            "buy_price": 220.0, "sell_price": 270.0, "qty": 12, 
+            "category": "الشروحات", 
+            "author": "د. عبد الفتاح القاضي", 
+            "image": ""
+        },
+        {
+            "id": 7, 
+            "title": "البرهان في تجويد القرآن (مع شرح الجزرية)", 
+            "buy_price": 100.0, "sell_price": 130.0, "qty": 15, 
+            "category": "الشروحات", 
+            "author": "الشيخ محمد الصادق قمحاوي", 
+            "image": ""
+        },
+        {
+            "id": 8, 
+            "title": "كتاب قالون عن نافع (سلسلة تقريب القراءات)", 
+            "buy_price": 110.0, "sell_price": 140.0, "qty": 18, 
+            "category": "سلسلة ضمرة", 
+            "author": "الشيخ توفيق ضمرة", 
+            "image": ""
+        },
+        {
+            "id": 9, 
+            "title": "مقنع الداني في رسم المصاحف العثمانية", 
+            "buy_price": 150.0, "sell_price": 190.0, "qty": 10, 
+            "category": "رسم وضبط المصحف", 
+            "author": "الإمام أبو عمرو الداني", 
+            "image": ""
+        },
+        {
+            "id": 10, 
+            "title": "التنزيل في رسم المصحف وضبطه", 
+            "buy_price": 130.0, "sell_price": 170.0, "qty": 10, 
+            "category": "رسم وضبط المصحف", 
+            "author": "د. أحمد حسن فرحات", 
+            "image": ""
+        },
+        {
+            "id": 11, 
+            "title": "ألفية ابن مالك في النحو والصرف", 
+            "buy_price": 60.0, "sell_price": 80.0, "qty": 25, 
+            "category": "كتب اللغة والنحو", 
+            "author": "الإمام ابن مالك الطائي", 
+            "image": ""
+        }
     ])
 
 if 'customer_cart' not in st.session_state:
@@ -87,7 +175,7 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء)":
     
     col_search1, col_search2 = st.columns([3, 1])
     with col_search1:
-        search_kw = st.text_input("ابحث عن كتاب، مؤلف، أو موضوع:", "", placeholder="مثال: الشاطبية، القاضي، مصحف...")
+        search_kw = st.text_input("ابحث عن كتاب، مؤلف، أو موضوع:", "", placeholder="مثال: الشاطبية، الجزرية، القاضي...")
     with col_search2:
         categories = ["الكل"] + list(st.session_state.inventory['category'].unique())
         selected_cat = st.selectbox("التصنيف:", categories)
@@ -107,6 +195,10 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء)":
     for idx, book in df_books.iterrows():
         col_idx = idx % 2
         with cols[col_idx]:
+            # Display image if exists
+            if book.get('image') and os.path.exists(book['image']):
+                st.image(book['image'], use_container_width=True)
+            
             st.markdown(f"""
             <div class="book-card">
                 <div class="book-title">{book['title']}</div>
@@ -191,7 +283,7 @@ else:
     if not st.session_state.admin_logged_in:
         pwd = st.text_input("أدخل كلمة مرور الإدارة:", type="password")
         if st.button("تسجيل الدخول"):
-            if pwd == "1234":  # Default Password
+            if pwd == "1234":  # Password
                 st.session_state.admin_logged_in = True
                 st.rerun()
             else:
@@ -224,19 +316,36 @@ else:
             st.markdown("### 📦 المخزون الحالي والأسعار")
             st.dataframe(st.session_state.inventory, use_container_width=True)
 
-        # Tab 3: Add Book
+        # Tab 3: Add Book with Image Upload
         with admin_tab3:
-            st.markdown("### ➕ إضافة كتاب جديد للمكتبة")
+            st.markdown("### ➕ إضافة كتاب جديد للمكتبة مع صورة الغلاف")
             with st.form("admin_add_book"):
                 b_title = st.text_input("اسم الكتاب:")
                 b_author = st.text_input("المؤلف / المحقق:")
-                b_cat = st.selectbox("التصنيف:", ["مصاحف القراءات", "المتون", "الشروحات", "سلسلة ضمرة", "كتب اللغة والنحو", "أخرى"])
+                b_cat = st.selectbox("التصنيف:", ["مصاحف القراءات", "المتون", "الشروحات", "رسم وضبط المصحف", "سلسلة ضمرة", "كتب اللغة والنحو", "أخرى"])
                 b_buy = st.number_input("سعر الشراء (التكلفة):", value=50.0)
                 b_sell = st.number_input("سعر البيع للعميل:", value=100.0)
                 b_qty = st.number_input("الكمية بالمخزون:", value=10)
                 
-                if st.form_submit_button("حفظ الكتاب"):
+                b_image = st.file_uploader("صورة غلاف الكتاب (اختر صورة من جهازك):", type=["jpg", "png", "jpeg"])
+                
+                if st.form_submit_button("حفظ الكتاب بالمكتبة"):
+                    image_path = ""
+                    if b_image is not None:
+                        image_path = os.path.join("uploads", b_image.name)
+                        with open(image_path, "wb") as f:
+                            f.write(b_image.getbuffer())
+
                     new_id = len(st.session_state.inventory) + 1
-                    new_row = {"id": new_id, "title": b_title, "author": b_author, "buy_price": b_buy, "sell_price": b_sell, "qty": b_qty, "category": b_cat}
+                    new_row = {
+                        "id": new_id, 
+                        "title": b_title, 
+                        "author": b_author, 
+                        "buy_price": b_buy, 
+                        "sell_price": b_sell, 
+                        "qty": b_qty, 
+                        "category": b_cat,
+                        "image": image_path
+                    }
                     st.session_state.inventory = pd.concat([st.session_state.inventory, pd.DataFrame([new_row])], ignore_index=True)
-                    st.success(f"تم حفظ الكتاب '{b_title}' بنجاح!")
+                    st.success(f"تمت إضافة الكتاب '{b_title}' بنجاح مع الصورة!")
