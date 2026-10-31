@@ -131,7 +131,7 @@ if st.session_state.admin_logged_in:
 
     with tab1:
         st.markdown("### 🤖 مساعد الإدارة الذكي (تحدث معه لتعديل المتجر وتنفيذ الطلبات)")
-        st.markdown("اكتب لي أي طلب مثل: *(غيّر لون الموقع إلى الأزرق، غير صورة البانر، كم عدد الطلبات؟)* وسأقوم بتنفيذه ومناقشتك فوراً!")
+        st.markdown("اكتب لي أي طلب مثل: *(كم عدد الطلبات؟، كيف أغير صورة البانر؟)* وسأقوم بالرد عليك ومناقشتك فوراً!")
         
         for chat in st.session_state.admin_chat_history:
             if chat["role"] == "user":
@@ -153,4 +153,203 @@ if st.session_state.admin_logged_in:
                 if "طلبات" in prompt_lower:
                     order_count = len(st.session_state.orders)
                     response_text = f"حسناً يا فندم، لديك حالياً ({order_count}) من طلبات الشراء الواردة في السجل."
-                elif "صورة" in prompt_lower
+                elif "صورة" in prompt_lower and "بانر" in prompt_lower:
+                    response_text = "لتغيير صورة البانر، يمكنك الانتقال إلى تبويب (الإعدادات) ووضع رابط الصورة الجديدة مباشرة وسأقوم بحفظها لك."
+                else:
+                    response_text = f"أنا تحت أمرك يا فندم! لقد تلقيت طلبك ('{user_prompt}') وجاري تنفيذه أو دراسته لتطبيق التعديل المناسب في المتجر. هل تحتاج لأي تعديل إضافي؟"
+                
+                st.session_state.admin_chat_history.append({"role": "assistant", "content": response_text})
+                st.rerun()
+
+    with tab2:
+        st.markdown("### 📋 طلبات الشراء الواردة")
+        if st.session_state.orders:
+            st.dataframe(pd.DataFrame(st.session_state.orders), use_container_width=True, hide_index=True)
+        else:
+            st.info("لا توجد طلبات جديدة حالياً.")
+
+    with tab3:
+        st.markdown("### 👥 الزوار والعملاء المسجلون لتلقي العروض")
+        if st.session_state.subscribers:
+            st.dataframe(pd.DataFrame(st.session_state.subscribers), use_container_width=True, hide_index=True)
+        else:
+            st.info("لا يوجد زوار مسجلون حتى الآن.")
+
+    with tab4:
+        st.markdown("### 📦 سجل مخزون الكتب")
+        st.dataframe(st.session_state.inventory, use_container_width=True, hide_index=True)
+
+    with tab5:
+        st.markdown("### ⚙️ إعدادات المتجر وبيانات دخول المدير")
+        with st.form("settings_form"):
+            new_wa = st.text_input("رقم الواتساب:", value=st.session_state.site_settings['whatsapp_number'])
+            new_fb = st.text_input("رابط صفحة الفيسبوك:", value=st.session_state.site_settings['facebook_url'])
+            new_shipping = st.number_input("تكلفة الشحن الثابتة:", value=float(st.session_state.site_settings['shipping_cost']))
+            new_banner = st.text_input("رابط صورة البانر:", value=st.session_state.site_settings['banner_image'])
+            
+            st.markdown("---")
+            new_admin_name = st.text_input("اسم المدير للدخول:", value=st.session_state.site_settings['admin_name'])
+            new_admin_pass = st.text_input("الرقم السري للمدير:", value=st.session_state.site_settings['admin_password'], type="password")
+            
+            if st.form_submit_button("💾 حفظ الإعدادات"):
+                st.session_state.site_settings['whatsapp_number'] = new_wa
+                st.session_state.site_settings['facebook_url'] = new_fb
+                st.session_state.site_settings['shipping_cost'] = new_shipping
+                st.session_state.site_settings['banner_image'] = new_banner
+                st.session_state.site_settings['admin_name'] = new_admin_name
+                st.session_state.site_settings['admin_password'] = new_admin_pass
+                st.success("تم التحديث بنجاح!")
+                st.rerun()
+
+    with tab6:
+        st.markdown("### ⚠️ شكاوى وبلاغات الأعطال")
+        if st.session_state.reports:
+            st.dataframe(pd.DataFrame(st.session_state.reports), use_container_width=True, hide_index=True)
+        else:
+            st.info("لا توجد بلاغات.")
+
+# =============================================================
+# 🛍️ واجهة المتجر الطبيعية (للعملاء والزوار)
+# =============================================================
+else:
+    # شريط صور الكتب المتحرك تلقائياً كل 3 ثوانٍ
+    slider_cards_html = ""
+    for idx, book in st.session_state.inventory.iterrows():
+        b_title = book.get('عنوان الكتاب', '')
+        b_img = book.get('صورة_الغلاف', 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80')
+        slider_cards_html += '<div class="slider-card"><img src="' + b_img + '" alt="book"><p>' + b_title + '</p></div>'
+
+    slider_html = '''
+    <div class="slider-container" id="autoSlider">
+        ''' + slider_cards_html + '''
+    </div>
+    <script>
+        const slider = document.getElementById('autoSlider');
+        let scrollAmount = 0;
+        function autoScroll() {
+            if (slider) {
+                scrollAmount += 200;
+                if (scrollAmount >= slider.scrollWidth - slider.clientWidth) {
+                    scrollAmount = 0;
+                }
+                slider.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+            }
+        }
+        setInterval(autoScroll, 3000);
+    </script>
+    '''
+    st.markdown(slider_html, unsafe_allow_html=True)
+
+    if st.session_state.customer_logged_in:
+        col_c_info1, col_c_info2 = st.columns([3, 1])
+        with col_c_info1:
+            st.success(f"👤 أهلاً بك يا **{st.session_state.current_customer_name}** (حسابك نشط ومفضلاتك محفوظة ⭐)")
+        with col_c_info2:
+            if st.button("🚪 تسجيل خروج الحساب"):
+                st.session_state.customer_logged_in = False
+                st.session_state.current_customer_phone = ""
+                st.session_state.current_customer_name = ""
+                st.rerun()
+
+    st.subheader("🔍 تصفح جميع العناوين والكتب")
+    
+    col_s1, col_s2 = st.columns([2, 1])
+    with col_s1:
+        search_kw = st.text_input("ابحث عن كتاب أو مؤلف:", "", placeholder="مثال: الشاطبية...")
+    with col_s2:
+        categories = ["الكل"] + list(st.session_state.inventory['التصنيف'].unique())
+        selected_cat = st.selectbox("القسم:", categories)
+
+    df_books = st.session_state.inventory.copy()
+    if search_kw:
+        df_books = df_books[df_books['عنوان الكتاب'].str.contains(search_kw, case=False, na=False) | df_books['المؤلف / المحقق'].str.contains(search_kw, case=False, na=False)]
+    if selected_cat != "الكل":
+        df_books = df_books[df_books['التصنيف'] == selected_cat]
+
+    current_phone = st.session_state.current_customer_phone
+    if current_phone and current_phone not in st.session_state.customer_wishlists:
+        st.session_state.customer_wishlists[current_phone] = []
+
+    user_wishlist = st.session_state.customer_wishlists.get(current_phone, []) if current_phone else []
+
+    cols = st.columns(2)
+    for idx, book in df_books.iterrows():
+        col_idx = idx % 2
+        with cols[col_idx]:
+            title_val = book.get('عنوان الكتاب', '')
+            author_val = book.get('المؤلف / المحقق', '')
+            pub_val = book.get('دار النشر', '')
+            price_val = float(book.get('سعر البيع', 0))
+            barcode_val = book.get('الباركود', '')
+
+            st.markdown(f"""
+            <div class="book-card">
+                <div class="book-title">{title_val}</div>
+                <div class="book-author">المؤلف: <b>{author_val}</b></div>
+                <div style="margin-top: 6px;"><span class="edition-badge">📖 {pub_val}</span></div>
+                <div class="book-price">السعر: {price_val:,.2f} جنيه</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
+            with col_btn1:
+                is_fav = title_val in user_wishlist
+                fav_label = "❤️ مفضلة" if is_fav else "🤍 نجمة"
+                if st.button(fav_label, key=f"fav_{barcode_val}_{idx}"):
+                    if not current_phone:
+                        st.warning("⚠️ يرجى تسجيل حسابك برقم هاتفك بالأسفل أولاً لكي يتم حفظ كتبك المفضلة!")
+                    else:
+                        if is_fav:
+                            st.session_state.customer_wishlists[current_phone].remove(title_val)
+                            st.toast("تم إزالة الكتاب من مفضلتك")
+                        else:
+                            st.session_state.customer_wishlists[current_phone].append(title_val)
+                            st.toast("تمت إضافة الكتاب لمفضلتك الشخصية ⭐")
+                        st.rerun()
+            with col_btn2:
+                avail = int(book.get('الكمية', 0))
+                qty_to_buy = st.number_input("الكمية:", min_value=1, max_value=max(1, avail), value=1, key=f"q_{barcode_val}_{idx}")
+            with col_btn3:
+                st.write(" ")
+                if avail > 0:
+                    if st.button("🛒 إضافة للسلة", key=f"b_{barcode_val}_{idx}"):
+                        st.session_state.customer_cart.append({
+                            "عنوان الكتاب": f"{title_val} ({pub_val})",
+                            "سعر القطعة": price_val,
+                            "الكمية": qty_to_buy,
+                            "الإجمالي": price_val * qty_to_buy
+                        })
+                        st.success(f"تمت إضافة '{title_val}' بنجاح!")
+                else:
+                    st.error("نفدت الكمية")
+
+    if current_phone and user_wishlist:
+        st.markdown("---")
+        st.markdown(f"### ⭐ كتبك المفضلة يا {st.session_state.current_customer_name} (قائمة الأمنيات المحفوظة)")
+        for fav_book in user_wishlist:
+            st.markdown(f"- 📖 **{fav_book}**")
+
+    st.markdown("---")
+    st.markdown("## 🛒 سلة التسوق وإتمام الطلب")
+    if st.session_state.customer_cart:
+        cart_df = pd.DataFrame(st.session_state.customer_cart)
+        st.dataframe(cart_df, use_container_width=True, hide_index=True)
+        
+        books_total = cart_df['الإجمالي'].sum()
+        shipping_cost = float(st.session_state.site_settings['shipping_cost'])
+        grand_total = books_total + shipping_cost
+
+        st.markdown(f"### الإجمالي الكلي: **{grand_total:,.2f} جنيه مصري** (شاملاً الشحن {shipping_cost} ج.م)")
+
+        with st.form("checkout_form"):
+            c_name = st.text_input("الاسم بالكامل:", value=st.session_state.current_customer_name)
+            c_phone = st.text_input("رقم الهاتف / الواتساب:", value=st.session_state.current_customer_phone)
+            c_address = st.text_input("عنوان التوصيل والمدينة:")
+            submit_order = st.form_submit_button("✅ تأكيد الطلب")
+            if submit_order:
+                if c_name and c_phone and c_address:
+                    order_id = len(st.session_state.orders) + 1001
+                    st.session_state.orders.append({
+                        "رقم_الطلب": order_id, "التاريخ": datetime.date.today().strftime("%Y-%m-%d"),
+                        "اسم_العميل": c_name, "الهاتف": c_phone, "العنوان": c_address,
+                        "الإجمالي": grand_total, "حالة_الطلب": "
