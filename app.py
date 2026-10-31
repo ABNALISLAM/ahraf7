@@ -1,36 +1,22 @@
 import streamlit as st
 import pandas as pd
 import datetime
-import os
-import random
 
-# 1. إعدادات الصفحة وعنوان التبويب
+# 1. إعدادات الصفحة
 st.set_page_config(
     page_title="الأحرف السـ7ـبعة | لعلوم القرآن والقراءات",
     page_icon="📖",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
-# 2. فحص الرابط للتحقق من المالك (الوضع السري برقمك السري 1181A@)
-query_params = st.query_params
-is_admin_via_url = query_params.get("admin") == "1181A@"
-
-if is_admin_via_url:
-    st.session_state.admin_logged_in = True
-
-if 'admin_logged_in' not in st.session_state:
-    st.session_state.admin_logged_in = False
-
-# 3. تهيئة الإعدادات الديناميكية (مع إمكانية رفع وتغيير الصورة من الإدارة)
+# 2. تهيئة الإعدادات الديناميكية للموقع
 if 'site_settings' not in st.session_state:
     st.session_state.site_settings = {
         "whatsapp_number": "201033393575",
         "facebook_url": "https://facebook.com",
         "btn_whatsapp_label": "💬 تواصل عبر الواتساب",
         "btn_facebook_label": "📘 صفحة الفيسبوك",
-        "hero_title": "📖 الأَحْرُفُ السـ7ـبْعَة",
-        "hero_subtitle": "✦ لِكُتُبِ القِرَاءَاتِ وَعُلُومِ القُرْآنِ الكَرِيمِ ✦",
         "shipping_cost": 60.0,
         "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80"
     }
@@ -54,7 +40,10 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-# 4. تنسيقات التصميم العامة
+if 'admin_logged_in' not in st.session_state:
+    st.session_state.admin_logged_in = False
+
+# 3. تنسيقات التصميم
 st.markdown("""
 <style>
     .stApp { 
@@ -63,12 +52,6 @@ st.markdown("""
         background-color: #F8FAF9 !important; 
         font-family: 'Amiri', Tahoma, sans-serif;
     }
-    
-    [data-testid="stSidebar"] {
-        white-space: normal !important;
-        overflow-wrap: break-word !important;
-    }
-
     .book-card {
         background-color: #FFFFFF;
         border: 1px solid #E0E0E0;
@@ -82,70 +65,85 @@ st.markdown("""
     .book-author { color: #555; font-size: 14px; }
     .book-price { font-size: 19px; font-weight: bold; color: #B8860B; margin-top: 8px; }
     .edition-badge { background-color: #FFF3CD; color: #856404; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
-
     .whatsapp-float {
-        position: fixed;
-        bottom: 25px;
-        left: 25px;
-        background-color: #25D366;
-        color: #FFF;
-        border-radius: 50px;
-        text-align: center;
-        font-size: 30px;
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
-        z-index: 999;
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        transition: 0.3s;
+        position: fixed; bottom: 25px; left: 25px; background-color: #25D366; color: #FFF;
+        border-radius: 50px; text-align: center; font-size: 30px; box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
+        z-index: 999; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; text-decoration: none;
     }
-    .whatsapp-float:hover {
-        background-color: #20ba5a;
-        transform: scale(1.1);
-    }
-
     .footer-box {
-        background-color: #0B3C26;
-        color: #FFFFFF;
-        padding: 25px;
-        border-radius: 12px;
-        text-align: center;
-        margin-top: 40px;
-        border-top: 3px solid #FFD700;
+        background-color: #0B3C26; color: #FFFFFF; padding: 25px; border-radius: 12px; text-align: center; margin-top: 40px; border-top: 3px solid #FFD700;
     }
-    .footer-links a {
-        color: #FFD700;
-        text-decoration: none;
-        margin: 0 15px;
-        font-weight: bold;
-        font-size: 16px;
-    }
-    .footer-links a:hover {
-        text-decoration: underline;
-    }
+    .footer-links a { color: #FFD700; text-decoration: none; margin: 0 15px; font-weight: bold; font-size: 16px; }
 </style>
 """, unsafe_allow_html=True)
 
-if st.session_state.admin_logged_in:
-    st.sidebar.title("🔒 لوحة الإدارة")
-    mode = st.sidebar.radio("الواجهة:", ["🔒 لوحة تحكم الإدارة", "🛍️ معاينة المتجر"])
-    if st.sidebar.button("🚪 خروج من الإدارة"):
-        st.session_state.admin_logged_in = False
-        st.query_params.clear()
-        st.rerun()
-else:
-    mode = "🛍️ المتجر الإلكتروني (للعملاء والزوار)"
+# 4. القائمة الجانبية (زر الدخول المباشر للمدير)
+st.sidebar.title("⚙️ القائمة الرئيسية")
 
-# عرض صورة البانر الحالية (القابلة للتغيير من الإدارة)
+# زر مباشر يفتح لك خانة الرقم السري في القائمة الجانبية
+with st.sidebar.expander("🔒 دخول المدير (لوحة التحكم)", expanded=True):
+    password_input = st.text_input("أدخل الرقم السري:", type="password", key="admin_pass")
+    if st.button("دخول كمدير"):
+        if password_input == "1181A@":
+            st.session_state.admin_logged_in = True
+            st.success("تم الدخول بنجاح!")
+            st.rerun()
+        else:
+            st.error("الرقم السري غير صحيح!")
+
+if st.session_state.admin_logged_in:
+    if st.sidebar.button("🚪 تسجيل خروج"):
+        st.session_state.admin_logged_in = False
+        st.rerun()
+
+# عرض البانر في الواجهة
 st.image(st.session_state.site_settings['banner_image'], use_container_width=True)
 
 # =============================================================
-# 🛍️ واجهة المتجر (للعملاء)
+# 🔒 واجهة لوحة الإدارة (تظهر فوراً بمجرد إدخال الرقم السري)
 # =============================================================
-if mode == "🛍️ المتجر الإلكتروني (للعملاء والزوار)" or not st.session_state.admin_logged_in:
+if st.session_state.admin_logged_in:
+    st.markdown("## 🔒 لوحة إدارة المتجر والإعدادات")
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 طلبات الشراء", "📦 المخزون", "⚙️ إعدادات الموقع والروابط", "⚠️ بلاغات الأعطال"])
+
+    with tab1:
+        st.markdown("### 📋 طلبات الشراء الواردة")
+        if st.session_state.orders:
+            st.dataframe(pd.DataFrame(st.session_state.orders), use_container_width=True, hide_index=True)
+        else:
+            st.info("لا توجد طلبات جديدة حالياً.")
+
+    with tab2:
+        st.markdown("### 📦 سجل مخزون الكتب")
+        st.dataframe(st.session_state.inventory, use_container_width=True, hide_index=True)
+
+    with tab3:
+        st.markdown("### ⚙️ إعدادات المتجر والروابط")
+        with st.form("settings_form"):
+            new_wa = st.text_input("رقم الواتساب:", value=st.session_state.site_settings['whatsapp_number'])
+            new_fb = st.text_input("رابط صفحة الفيسبوك:", value=st.session_state.site_settings['facebook_url'])
+            new_shipping = st.number_input("تكلفة الشحن الثابتة:", value=float(st.session_state.site_settings['shipping_cost']))
+            new_banner = st.text_input("رابط صورة البانر:", value=st.session_state.site_settings['banner_image'])
+            
+            if st.form_submit_button("💾 حفظ التعديلات"):
+                st.session_state.site_settings['whatsapp_number'] = new_wa
+                st.session_state.site_settings['facebook_url'] = new_fb
+                st.session_state.site_settings['shipping_cost'] = new_shipping
+                st.session_state.site_settings['banner_image'] = new_banner
+                st.success("تم تحديث إعدادات الموقع بنجاح!")
+                st.rerun()
+
+    with tab4:
+        st.markdown("### ⚠️ شكاوى وبلاغات الأعطال")
+        if st.session_state.reports:
+            st.dataframe(pd.DataFrame(st.session_state.reports), use_container_width=True, hide_index=True)
+        else:
+            st.info("لا توجد بلاغات أعطال.")
+
+# =============================================================
+# 🛍️ واجهة المتجر الطبيعية (للعملاء والزوار)
+# =============================================================
+else:
     st.subheader("🔍 تصفح الكتب والمتون")
     
     col_s1, col_s2 = st.columns([2, 1])
@@ -156,7 +154,6 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
         selected_cat = st.selectbox("القسم:", categories)
 
     df_books = st.session_state.inventory.copy()
-
     if search_kw:
         df_books = df_books[df_books['عنوان الكتاب'].str.contains(search_kw, case=False, na=False) | df_books['المؤلف / المحقق'].str.contains(search_kw, case=False, na=False)]
     if selected_cat != "الكل":
@@ -232,94 +229,38 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
     else:
         st.info("سلة التسوق فارغة حالياً.")
 
-    # --- قسم الإبلاغ عن الأعطال للعملاء ---
+    # بلاغات الأعطال
     st.markdown("---")
     with st.expander("🛠️ واجهتك مشكلة أو عطل بالموقع؟ أبلغنا هنا"):
         with st.form("report_form"):
             r_name = st.text_input("اسمك الكريم:")
-            r_msg = st.text_area("صف لنا المشكلة أو العطل الذي واجهك:")
-            submit_report = st.form_submit_button("إرسال الإبلاغ للإدارة")
+            r_msg = st.text_area("صف لنا المشكلة:")
+            submit_report = st.form_submit_button("إرسال الإبلاغ")
             if submit_report:
                 if r_name and r_msg:
                     st.session_state.reports.append({"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": r_name, "المشكلة": r_msg})
-                    st.success("تم إرسال ملاحظتك للإدارة بنجاح، شكراً لتعاونك معنا!")
+                    st.success("تم إرسال ملاحظتك بنجاح!")
                 else:
-                    st.error("يرجى كتابة الاسم ووصف المشكلة.")
+                    st.error("يرجى ملء الحقول.")
 
-    # --- زر الواتساب العائم ---
+    # زر الواتساب العائم
     wa_num = st.session_state.site_settings['whatsapp_number']
     st.markdown(f"""
-    <a href="https://wa.me/{wa_num}?text=السلام%20عليكم،%20أريد%20الاستفسار%20عن%20كتب%20القراءات" class="whatsapp-float" target="_blank" title="تواصل معنا عبر الواتساب">
+    <a href="https://wa.me/{wa_num}?text=السلام%20عليكم،%20أريد%20الاستفسار%20عن%20كتب%20القراءات" class="whatsapp-float" target="_blank" title="تواصل معنا">
         💬
     </a>
     """, unsafe_allow_html=True)
 
-    # --- تذييل الصفحة (Footer) مع النص المطلوب ---
+    # التذييل (Footer)
     fb_url = st.session_state.site_settings['facebook_url']
-    wa_label = st.session_state.site_settings['btn_whatsapp_label']
-    fb_label = st.session_state.site_settings['btn_facebook_label']
-    
     st.markdown(f"""
     <div class="footer-box">
         <h3>منصة الأحرف السـ7ـبعة لعلوم القرآن والقراءات</h3>
         <p>نسعى لتقديم أثمن الكتب والمتون العلمية لعلوم القرآن والقراءات بخدمة دقيقة ومميزة</p>
         <div class="footer-links" style="margin-top: 15px;">
-            <a href="https://wa.me/{wa_num}" target="_blank">{wa_label}</a>
-            <a href="{fb_url}" target="_blank">{fb_label}</a>
+            <a href="https://wa.me/{wa_num}" target="_blank">💬 واتساب</a>
+            <a href="{fb_url}" target="_blank">📘 فيسبوك</a>
         </div>
         <p style="margin-top: 15px; font-size: 13px; color: #ccc;">جميع الحقوق محفوظة © 2026 الأحرف السـ7ـبعة</p>
     </div>
     """, unsafe_allow_html=True)
-
-# =============================================================
-# 🔒 واجهة لوحة الإدارة (مع إعدادات التحكم الكاملة ورفع الصور)
-# =============================================================
-else:
-    st.subheader("🔒 لوحة إدارة المتجر والمخزون")
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 طلبات الشراء", "📦 المخزون", "⚙️ إعدادات الموقع والروابط", "⚠️ بلاغات الأعطال الواردة"])
-
-    with tab1:
-        st.markdown("### 📋 قائمة الطلبات الواردة")
-        if st.session_state.orders:
-            orders_df = pd.DataFrame(st.session_state.orders)
-            st.dataframe(orders_df, use_container_width=True, hide_index=True)
-        else:
-            st.info("لا توجد طلبات جديدة.")
-
-    with tab2:
-        st.markdown("### 📦 سجل مخزون الكتب")
-        st.dataframe(st.session_state.inventory, use_container_width=True, hide_index=True)
-
-    with tab3:
-        st.markdown("### ⚙️ إعدادات المتجر وتغيير صورة البانر والروابط")
-        st.info("يمكنك تغيير الأرقام، الروابط، ونصوص الأزرار، أو رفع صورة بانر جديدة متى شئت دون الحاجة لمس الكود!")
-        
-        with st.form("settings_form"):
-            new_wa = st.text_input("رقم الواتساب (بالصيغة الدولية مثلاً 201033393575):", value=st.session_state.site_settings['whatsapp_number'])
-            new_fb = st.text_input("رابط صفحة الفيسبوك:", value=st.session_state.site_settings['facebook_url'])
-            new_wa_label = st.text_input("اسم زر الواتساب في أسفل الصفحة:", value=st.session_state.site_settings['btn_whatsapp_label'])
-            new_fb_label = st.text_input("اسم زر الفيسبوك في أسفل الصفحة:", value=st.session_state.site_settings['btn_facebook_label'])
-            new_shipping = st.number_input("تكلفة الشحن الثابتة (جنيه):", value=float(st.session_state.site_settings['shipping_cost']))
-            
-            st.markdown("---")
-            st.markdown("#### 🖼️ تغيير صورة الواجهة (البانر)")
-            new_banner_url = st.text_input("رابط مباشر لصورة جديدة (أو اتركها كما هي):", value=st.session_state.site_settings['banner_image'])
-            
-            save_settings = st.form_submit_button("💾 حفظ الإعدادات الجديدة وتحديث الموقع")
-            if save_settings:
-                st.session_state.site_settings['whatsapp_number'] = new_wa
-                st.session_state.site_settings['facebook_url'] = new_fb
-                st.session_state.site_settings['btn_whatsapp_label'] = new_wa_label
-                st.session_state.site_settings['btn_facebook_label'] = new_fb_label
-                st.session_state.site_settings['shipping_cost'] = new_shipping
-                st.session_state.site_settings['banner_image'] = new_banner_url
-                st.success("تم تحديث إعدادات المتجر والصورة بنجاح!")
-                st.rerun()
-
-    with tab4:
-        st.markdown("### ⚠️ شكاوى وبلاغات الأعطال من العملاء")
-        if st.session_state.reports:
-            reports_df = pd.DataFrame(st.session_state.reports)
-            st.dataframe(reports_df, use_container_width=True, hide_index=True)
-        else:
-            st.info("لا توجد بلاغات أعطال حالياً.")
