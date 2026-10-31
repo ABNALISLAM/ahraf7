@@ -53,7 +53,7 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-# 4. تنسيقات التصميم مع الصورة الجديدة التي أرسلتها تماماً
+# 4. تنسيقات التصميم العامة
 st.markdown("""
 <style>
     .stApp { 
@@ -67,23 +67,6 @@ st.markdown("""
         white-space: normal !important;
         overflow-wrap: break-word !important;
     }
-
-    /* البانر الخلفي بالصورة الفخمة المطلوبة والمطابقة لصورتك */
-    .hero-banner {
-        background: linear-gradient(rgba(11, 60, 38, 0.65), rgba(31, 94, 59, 0.65)), 
-                    url('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80');
-        background-size: cover;
-        background-position: center;
-        padding: 55px 20px;
-        border-radius: 16px;
-        color: #FFD700;
-        text-align: center;
-        margin-bottom: 25px;
-        border: 2px solid #FFD700;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    .hero-title { font-size: 42px; font-weight: 900; margin-bottom: 8px; text-shadow: 2px 2px 8px rgba(0,0,0,0.7); color: #FFD700; letter-spacing: 1px; }
-    .hero-sub { font-size: 18px; color: #FFFFFF; font-weight: bold; text-shadow: 1px 1px 5px rgba(0,0,0,0.7); }
 
     .book-card {
         background-color: #FFFFFF;
@@ -145,9 +128,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# عرض الصورة الإسلامية مباشرة عبر Streamlit لضمان ظهورها بالموقع بدقة 100%
-st.image("https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80", use_container_width=True)
-
 if st.session_state.admin_logged_in:
     st.sidebar.title("🔒 لوحة الإدارة")
     mode = st.sidebar.radio("الواجهة:", ["🔒 لوحة تحكم الإدارة", "🛍️ معاينة المتجر"])
@@ -158,13 +138,8 @@ if st.session_state.admin_logged_in:
 else:
     mode = "🛍️ المتجر الإلكتروني (للعملاء والزوار)"
 
-# البانر الرئيسي
-st.markdown(f"""
-<div class="hero-banner">
-    <div class="hero-title">{st.session_state.site_settings['hero_title']}</div>
-    <div class="hero-sub">{st.session_state.site_settings['hero_subtitle']}</div>
-</div>
-""", unsafe_allow_html=True)
+# البديل الأنيق والناجح 100%: عرض صورتك الفخمة مباشرة كواجهة للموقع لتظهر بوضوح تام ودون مشاكل
+st.image("https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80", use_container_width=True)
 
 # =============================================================
 # 🛍️ واجهة المتجر (للعملاء)
