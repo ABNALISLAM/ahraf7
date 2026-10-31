@@ -17,7 +17,7 @@ if 'site_settings' not in st.session_state:
         "facebook_url": "https://facebook.com",
         "shipping_cost": 60.0,
         "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80",
-        "admin_password": "1181A@"  # الرقم السري الافتراضي القابل للتغيير
+        "admin_password": "1234"  # الرقم السري الافتراضي القابل للتغيير
     }
 
 # 3. فحص الرابط للتحقق من المدير باستخدام الرقم السري المخزن حالياً
