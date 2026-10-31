@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 
-# 1. إعدادات الصفحة
+# 1. إعدادات الصفحة (بدون شريط جانبي نهائياً لمنع أي تقطيع)
 st.set_page_config(
     page_title="الأحرف السـ7ـبعة | لعلوم القرآن والقراءات",
     page_icon="📖",
@@ -27,6 +27,9 @@ if 'admin_logged_in' not in st.session_state:
 if 'subscribers' not in st.session_state:
     st.session_state.subscribers = []
 
+if 'wishlist' not in st.session_state:
+    st.session_state.wishlist = []  # قائمة المفضلة (الكتب المعلمة بنجمة)
+
 if 'inventory' not in st.session_state:
     st.session_state.inventory = pd.DataFrame([
         {"رقم_الكتاب": 1, "عنوان الكتاب": "مصحف الصحابة بالهامش لجمع القراءات العشر (أصفر)", "المؤلف / المحقق": "الشيخ توفيق ضمرة", "دار النشر": "دار الصحابة للتراث", "بلد النشر": "مصر", "وصف الطبعة": "طبعة دار الصحابة طنطا", "سعر الشراء": 320.0, "سعر البيع": 380.0, "الكمية": 15, "التصنيف": "مصاحف القراءات", "الباركود": "622100001001"},
@@ -46,9 +49,10 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-# 3. تنسيقات التصميم النظيفة
+# 3. تنسيقات التصميم النظيفة (إخفاء الشريط الجانبي بالكامل عبر CSS)
 st.markdown("""
 <style>
+    [data-testid="stSidebar"] { display: none; }
     .stApp { 
         direction: rtl !important; 
         text-align: right !important; 
@@ -81,22 +85,19 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# شريط جانبي نظيف وخالٍ من أي تعقيدات
-st.sidebar.title("📖 الأحرف السـ7ـبعة")
-st.sidebar.markdown("لعلوم القرآن والقراءات الكريمة")
-
-# عرض البانر في الواجهة
+# رأس الصفحة والبانر
+st.markdown("<h1 style='text-align: center; color: #0B3C26;'>📖 الأحرف السـ7ـبعة لعلوم القرآن والقراءات</h1>", unsafe_allow_html=True)
 st.image(st.session_state.site_settings['banner_image'], use_container_width=True)
 
 # =============================================================
-# 🔒 واجهة لوحة الإدارة (تظهر في الواجهة الرئيسية للمدير فقط)
+# 🔒 لوحة الإدارة (تظهر فقط للمدير)
 # =============================================================
 if st.session_state.admin_logged_in:
     col_top1, col_top2 = st.columns([4, 1])
     with col_top1:
         st.markdown("## 🔒 لوحة إدارة المتجر والإعدادات")
     with col_top2:
-        if st.button("🚪 تسجيل خروج"):
+        if st.button("🚪 تسجيل خروج المدير"):
             st.session_state.admin_logged_in = False
             st.rerun()
 
@@ -110,11 +111,9 @@ if st.session_state.admin_logged_in:
             st.info("لا توجد طلبات جديدة حالياً.")
 
     with tab2:
-        st.markdown("### 👥 الزوار والعملاء المسجلون (لتلقي العروض عبر الواتساب)")
+        st.markdown("### 👥 الزوار والعملاء المسجلون لتلقي العروض")
         if st.session_state.subscribers:
-            sub_df = pd.DataFrame(st.session_state.subscribers)
-            st.dataframe(sub_df, use_container_width=True, hide_index=True)
-            st.info(f"إجمالي عدد المشتركين: {len(sub_df)} عميل.")
+            st.dataframe(pd.DataFrame(st.session_state.subscribers), use_container_width=True, hide_index=True)
         else:
             st.info("لا يوجد زوار مسجلون حتى الآن.")
 
@@ -125,24 +124,23 @@ if st.session_state.admin_logged_in:
     with tab4:
         st.markdown("### ⚙️ إعدادات المتجر وبيانات دخول المدير")
         with st.form("settings_form"):
-            new_wa = st.text_input("رقم الواتساب الأساسي:", value=st.session_state.site_settings['whatsapp_number'])
+            new_wa = st.text_input("رقم الواتساب:", value=st.session_state.site_settings['whatsapp_number'])
             new_fb = st.text_input("رابط صفحة الفيسبوك:", value=st.session_state.site_settings['facebook_url'])
             new_shipping = st.number_input("تكلفة الشحن الثابتة:", value=float(st.session_state.site_settings['shipping_cost']))
             new_banner = st.text_input("رابط صورة البانر:", value=st.session_state.site_settings['banner_image'])
             
             st.markdown("---")
-            st.markdown("#### 🔐 تعديل اسم ورقم سري المدير")
-            new_admin_name = st.text_input("اسم المدير المخصص للدخول:", value=st.session_state.site_settings['admin_name'])
+            new_admin_name = st.text_input("اسم المدير للدخول:", value=st.session_state.site_settings['admin_name'])
             new_admin_pass = st.text_input("الرقم السري للمدير:", value=st.session_state.site_settings['admin_password'], type="password")
             
-            if st.form_submit_button("💾 حفظ التعديلات"):
+            if st.form_submit_button("💾 حفظ الإعدادات"):
                 st.session_state.site_settings['whatsapp_number'] = new_wa
                 st.session_state.site_settings['facebook_url'] = new_fb
                 st.session_state.site_settings['shipping_cost'] = new_shipping
                 st.session_state.site_settings['banner_image'] = new_banner
                 st.session_state.site_settings['admin_name'] = new_admin_name
                 st.session_state.site_settings['admin_password'] = new_admin_pass
-                st.success("تم تحديث إعدادات النظام بنجاح!")
+                st.success("تم التحديث بنجاح!")
                 st.rerun()
 
     with tab5:
@@ -150,13 +148,13 @@ if st.session_state.admin_logged_in:
         if st.session_state.reports:
             st.dataframe(pd.DataFrame(st.session_state.reports), use_container_width=True, hide_index=True)
         else:
-            st.info("لا توجد بلاغات الأعطال.")
+            st.info("لا توجد بلاغات.")
 
 # =============================================================
-# 🛍️ واجهة المتجر الطبيعية (للعملاء والزوار)
+# 🛍️ واجهة المتجر الطبيعية (للعملاء والزوار - تصفح حر ومستمر)
 # =============================================================
 else:
-    st.subheader("🔍 تصفح الكتب والمتون")
+    st.subheader("🔍 تصفح جميع العناوين والكتب")
     
     col_s1, col_s2 = st.columns([2, 1])
     with col_s1:
@@ -171,6 +169,7 @@ else:
     if selected_cat != "الكل":
         df_books = df_books[df_books['التصنيف'] == selected_cat]
 
+    # عرض الكتب بشبكة سلسة (عمودين مع التمرير الحر)
     cols = st.columns(2)
     for idx, book in df_books.iterrows():
         col_idx = idx % 2
@@ -190,13 +189,25 @@ else:
             </div>
             """, unsafe_allow_html=True)
             
-            avail = int(book.get('الكمية', 0))
-            if avail > 0:
-                col_b1, col_b2 = st.columns([1, 2])
-                with col_b1:
-                    qty_to_buy = st.number_input("الكمية:", min_value=1, max_value=max(1, avail), value=1, key=f"q_{barcode_val}_{idx}")
-                with col_b2:
-                    st.write(" ")
+            # أزرار الإضافة للمفضلة (⭐ نجمة) والسلة
+            col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
+            with col_btn1:
+                is_fav = title_val in st.session_state.wishlist
+                fav_label = "❤️ مفضلة" if is_fav else "🤍 نجمة"
+                if st.button(fav_label, key=f"fav_{barcode_val}_{idx}"):
+                    if is_fav:
+                        st.session_state.wishlist.remove(title_val)
+                        st.toast(جتم إزالة الكتاب من المفضلة")
+                    else:
+                        st.session_state.wishlist.append(title_val)
+                        st.toast("تمت إضافة الكتاب لمفضلتك ⭐")
+                    st.rerun()
+            with col_btn2:
+                avail = int(book.get('الكمية', 0))
+                qty_to_buy = st.number_input("الكمية:", min_value=1, max_value=max(1, avail), value=1, key=f"q_{barcode_val}_{idx}")
+            with col_btn3:
+                st.write(" ")
+                if avail > 0:
                     if st.button("🛒 إضافة للسلة", key=f"b_{barcode_val}_{idx}"):
                         st.session_state.customer_cart.append({
                             "عنوان الكتاب": f"{title_val} ({pub_val})",
@@ -205,9 +216,17 @@ else:
                             "الإجمالي": price_val * qty_to_buy
                         })
                         st.success(f"تمت إضافة '{title_val}' بنجاح!")
-            else:
-                st.error("نفدت الكمية حالياً")
+                else:
+                    st.error("نفدت الكمية")
 
+    # عرض قائمة المفضلة (الأمنيات) للزائر
+    if st.session_state.wishlist:
+        st.markdown("---")
+        st.markdown("### ⭐ كتبك المفضلة التي اخترتها (قائمة الأمنيات)")
+        for fav_book in st.session_state.wishlist:
+            st.markdown(f"- 📖 **{fav_book}**")
+
+    # سلة التسوق
     st.markdown("---")
     st.markdown("## 🛒 سلة التسوق وإتمام الطلب")
     if st.session_state.customer_cart:
@@ -241,9 +260,9 @@ else:
     else:
         st.info("سلة التسوق فارغة حالياً.")
 
-    # نظام تسجيل الزوار (اختياري)
+    # نظام تسجيل الزوار (اختياري) + دخول المدير من نفس الخانة بالأسفل
     st.markdown("---")
-    st.markdown("### 🔔 انضم لقائمة المهتمين")
+    st.markdown("### 🔔 انضم لقائمة المهتمين بالعروض")
     st.markdown("<p style='font-size:14px; color:#555;'>سجل هاتفك ليصلك كل جديد وعروض الكتب على الواتساب (اختياري)</p>", unsafe_allow_html=True)
     
     with st.form("visitor_reg_form"):
@@ -255,7 +274,7 @@ else:
         
         submitted = st.form_submit_button("📩 تسجيل المتابعة")
         if submitted:
-            # التحقق الذكي هل هو المدير يكتب بيانات دخوله؟
+            # التحقق هل هو المدير يكتب بيانات دخوله؟
             if v_name.strip() == st.session_state.site_settings['admin_name'] and v_phone.strip() == st.session_state.site_settings['admin_password']:
                 st.session_state.admin_logged_in = True
                 st.success("مرحباً بك يا مدير الموقع!")
@@ -270,7 +289,7 @@ else:
     st.markdown("---")
     with st.expander("🛠️ واجهتك مشكلة أو عطل بالموقع؟ أبلغنا هنا"):
         with st.form("report_form"):
-            r_name = st.text_input("اسمك الكريم:")
+            r_name = st.text_input("اسم الكريم:")
             r_msg = st.text_area("صف لنا المشكلة:")
             submit_report = st.form_submit_button("إرسال الإبلاغ")
             if submit_report:
