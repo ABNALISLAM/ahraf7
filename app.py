@@ -17,11 +17,16 @@ if 'site_settings' not in st.session_state:
         "facebook_url": "https://facebook.com",
         "shipping_cost": 60.0,
         "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80",
+        # بيانات دخول المدير الذكية (يمكنك تغييرها لاحقاً من لوحة التحكم)
+        "admin_name": "المدير العام",
         "admin_password": "1234"
     }
 
 if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
+
+if 'subscribers' not in st.session_state:
+    st.session_state.subscribers = []  # قائمة زوار الموقع المسجلين
 
 if 'inventory' not in st.session_state:
     st.session_state.inventory = pd.DataFrame([
@@ -42,7 +47,7 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-# 3. تنسيقات التصميم
+# 3. تنسيقات التصميم النظيفة
 st.markdown("""
 <style>
     .stApp { 
@@ -77,25 +82,33 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 4. القائمة الجانبية (منطقة الدخول السرية الخاصة بك)
+# 4. القائمة الجانبية (تسجيل الزوار + دخول المدير الذكي)
 st.sidebar.title("📖 الأحرف السـ7ـبعة")
 st.sidebar.markdown("لعلوم القرآن والقراءات الكريمة")
-
 st.sidebar.markdown("---")
 
-# إذا لم يكن مسجلاً للدخول، نعرض له "منطقة مخفية" بأسفل القائمة الجانبية لا يلتفت لها الزوار
 if not st.session_state.admin_logged_in:
-    with st.sidebar.expander("⚙️ إعدادات المتجر (خاص بالمدير)"):
-        pass_input = st.text_input("أدخل الرقم السري:", type="password", key="sidebar_pass")
-        if st.button("دخول لوحة التحكم"):
-            if pass_input == st.session_state.site_settings['admin_password']:
+    st.sidebar.markdown("### 🔔 انضم لقائمة المهتمين")
+    st.sidebar.markdown("<p style='font-size:13px; color:#555;'>سجل هاتفك ليصلك كل جديد وعروض الكتب على الواتساب (اختياري)</p>", unsafe_allow_html=True)
+    
+    with st.sidebar.form("visitor_reg_form"):
+        v_name = st.text_input("الاسم الكريم:")
+        v_phone = st.text_input("رقم الواتساب:")
+        submitted = st.form_submit_button("📩 تسـجيل المتابعة")
+        
+        if submitted:
+            # التحقق هل هو المدير يكتب بيانات دخوله من هنا؟
+            if v_name.strip() == st.session_state.site_settings['admin_name'] and v_phone.strip() == st.session_state.site_settings['admin_password']:
                 st.session_state.admin_logged_in = True
-                st.success("تم الدخول بنجاح!")
+                st.success("مرحباً بك يا مدير الموقع!")
                 st.rerun()
+            elif v_name and v_phone:
+                st.session_state.subscribers.append({"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": v_name, "الهاتف": v_phone})
+                st.success("تم تسجيلك بنجاح لتلقي العروض!")
             else:
-                st.error("الرقم السري غير صحيح!")
+                st.error("يرجى إدخال الاسم ورقم الهاتف.")
 else:
-    st.sidebar.success("✅ أنت مسجل كمدير")
+    st.sidebar.success("✅ مسجل كمدير النظام")
     if st.sidebar.button("🚪 تسجيل خروج"):
         st.session_state.admin_logged_in = False
         st.rerun()
@@ -104,11 +117,11 @@ else:
 st.image(st.session_state.site_settings['banner_image'], use_container_width=True)
 
 # =============================================================
-# 🔒 واجهة لوحة الإدارة
+# 🔒 واجهة لوحة الإدارة (تظهر فقط للمدير)
 # =============================================================
 if st.session_state.admin_logged_in:
     st.markdown("## 🔒 لوحة إدارة المتجر والإعدادات")
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 طلبات الشراء", "📦 المخزون", "⚙️ إعدادات الموقع والروابط", "⚠️ بلاغات الأعطال"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📋 طلبات الشراء", "👥 الزوار المسجلين", "📦 المخزون", "⚙️ الإعدادات", "⚠️ البلاغات"])
 
     with tab1:
         st.markdown("### 📋 طلبات الشراء الواردة")
@@ -118,31 +131,44 @@ if st.session_state.admin_logged_in:
             st.info("لا توجد طلبات جديدة حالياً.")
 
     with tab2:
+        st.markdown("### 👥 الزوار والعملاء المسجلون (لتلقي العروض عبر الواتساب)")
+        if st.session_state.subscribers:
+            sub_df = pd.DataFrame(st.session_state.subscribers)
+            st.dataframe(sub_df, use_container_width=True, hide_index=True)
+            
+            # زر لتصدير أرقام الهواتف أو التواصل السريع
+            st.info(f"إجمالي عدد المشتركين لتلقي العروض: {len(sub_df)} عميل.")
+        else:
+            st.info("لا يوجد زوار مسجلون حتى الآن.")
+
+    with tab3:
         st.markdown("### 📦 سجل مخزون الكتب")
         st.dataframe(st.session_state.inventory, use_container_width=True, hide_index=True)
 
-    with tab3:
-        st.markdown("### ⚙️ إعدادات المتجر والروابط والرقم السري")
+    with tab4:
+        st.markdown("### ⚙️ إعدادات المتجر وبيانات دخول المدير")
         with st.form("settings_form"):
-            new_wa = st.text_input("رقم الواتساب:", value=st.session_state.site_settings['whatsapp_number'])
+            new_wa = st.text_input("رقم الواتساب الأساسي:", value=st.session_state.site_settings['whatsapp_number'])
             new_fb = st.text_input("رابط صفحة الفيسبوك:", value=st.session_state.site_settings['facebook_url'])
             new_shipping = st.number_input("تكلفة الشحن الثابتة:", value=float(st.session_state.site_settings['shipping_cost']))
             new_banner = st.text_input("رابط صورة البانر:", value=st.session_state.site_settings['banner_image'])
             
             st.markdown("---")
-            st.markdown("#### 🔐 تغيير الرقم السري للدخول للوحة الإدارة")
-            new_pass_input = st.text_input("الرقم السري الجديد:", value=st.session_state.site_settings['admin_password'], type="password")
+            st.markdown("#### 🔐 تعديل اسم ورقم سري المدير (الذي تكتبه في خانة التسجيل للدخول)")
+            new_admin_name = st.text_input("اسم المدير المخصص للدخول:", value=st.session_state.site_settings['admin_name'])
+            new_admin_pass = st.text_input("الرقم السري للمدير:", value=st.session_state.site_settings['admin_password'], type="password")
             
-            if st.form_submit_button("💾 حفظ الإعدادات"):
+            if st.form_submit_button("💾 حفظ التعديلات"):
                 st.session_state.site_settings['whatsapp_number'] = new_wa
                 st.session_state.site_settings['facebook_url'] = new_fb
                 st.session_state.site_settings['shipping_cost'] = new_shipping
                 st.session_state.site_settings['banner_image'] = new_banner
-                st.session_state.site_settings['admin_password'] = new_pass_input
-                st.success("تم تحديث الإعدادات والرقم السري بنجاح!")
+                st.session_state.site_settings['admin_name'] = new_admin_name
+                st.session_state.site_settings['admin_password'] = new_admin_pass
+                st.success("تم تحديث إعدادات النظام بنجاح!")
                 st.rerun()
 
-    with tab4:
+    with tab5:
         st.markdown("### ⚠️ شكاوى وبلاغات الأعطال")
         if st.session_state.reports:
             st.dataframe(pd.DataFrame(st.session_state.reports), use_container_width=True, hide_index=True)
@@ -255,13 +281,13 @@ else:
     # زر الواتساب العائم
     wa_num = st.session_state.site_settings['whatsapp_number']
     st.markdown(f"""
-    <a href="https://wa.me/{wa_num}?text=السلام%20عليكم،%20أريد%20الاستفسار%2520عن%20كتب%20القراءات" class="whatsapp-float" target="_blank" title="تواصل معنا">
+    <a href="https://wa.me/{wa_num}?text=السلام%20عليكم،%20أريد%20الاستفسار%20عن%20كتب%20القراءات" class="whatsapp-float" target="_blank" title="تواصل معنا">
         💬
     </a>
     """, unsafe_allow_html=True)
 
     # التذييل (Footer)
-    fb_url = st.section_state.site_settings['facebook_url'] if 'site_settings' in st.session_state else "https://facebook.com"
+    fb_url = st.session_state.site_settings['facebook_url'] if 'site_settings' in st.session_state else "https://facebook.com"
     st.markdown(f"""
     <div class="footer-box">
         <h3>منصة الأحرف السـ7ـبعة لعلوم القرآن والقراءات</h3>
