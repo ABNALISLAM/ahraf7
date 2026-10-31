@@ -7,7 +7,7 @@ st.set_page_config(
     page_title="الأحرف السـ7ـبعة | لعلوم القرآن والقراءات",
     page_icon="📖",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # 2. تهيئة إعدادات الموقع والبيانات الأساسية
@@ -17,7 +17,6 @@ if 'site_settings' not in st.session_state:
         "facebook_url": "https://facebook.com",
         "shipping_cost": 60.0,
         "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80",
-        # بيانات دخول المدير الذكية (يمكنك تغييرها لاحقاً من لوحة التحكم)
         "admin_name": "المدير العام",
         "admin_password": "1234"
     }
@@ -26,7 +25,7 @@ if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
 
 if 'subscribers' not in st.session_state:
-    st.session_state.subscribers = []  # قائمة زوار الموقع المسجلين
+    st.session_state.subscribers = []
 
 if 'inventory' not in st.session_state:
     st.session_state.inventory = pd.DataFrame([
@@ -82,45 +81,25 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 4. القائمة الجانبية (تسجيل الزوار + دخول المدير الذكي)
+# شريط جانبي نظيف وخالٍ من أي تعقيدات
 st.sidebar.title("📖 الأحرف السـ7ـبعة")
 st.sidebar.markdown("لعلوم القرآن والقراءات الكريمة")
-st.sidebar.markdown("---")
-
-if not st.session_state.admin_logged_in:
-    st.sidebar.markdown("### 🔔 انضم لقائمة المهتمين")
-    st.sidebar.markdown("<p style='font-size:13px; color:#555;'>سجل هاتفك ليصلك كل جديد وعروض الكتب على الواتساب (اختياري)</p>", unsafe_allow_html=True)
-    
-    with st.sidebar.form("visitor_reg_form"):
-        v_name = st.text_input("الاسم الكريم:")
-        v_phone = st.text_input("رقم الواتساب:")
-        submitted = st.form_submit_button("📩 تسـجيل المتابعة")
-        
-        if submitted:
-            # التحقق هل هو المدير يكتب بيانات دخوله من هنا؟
-            if v_name.strip() == st.session_state.site_settings['admin_name'] and v_phone.strip() == st.session_state.site_settings['admin_password']:
-                st.session_state.admin_logged_in = True
-                st.success("مرحباً بك يا مدير الموقع!")
-                st.rerun()
-            elif v_name and v_phone:
-                st.session_state.subscribers.append({"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": v_name, "الهاتف": v_phone})
-                st.success("تم تسجيلك بنجاح لتلقي العروض!")
-            else:
-                st.error("يرجى إدخال الاسم ورقم الهاتف.")
-else:
-    st.sidebar.success("✅ مسجل كمدير النظام")
-    if st.sidebar.button("🚪 تسجيل خروج"):
-        st.session_state.admin_logged_in = False
-        st.rerun()
 
 # عرض البانر في الواجهة
 st.image(st.session_state.site_settings['banner_image'], use_container_width=True)
 
 # =============================================================
-# 🔒 واجهة لوحة الإدارة (تظهر فقط للمدير)
+# 🔒 واجهة لوحة الإدارة (تظهر في الواجهة الرئيسية للمدير فقط)
 # =============================================================
 if st.session_state.admin_logged_in:
-    st.markdown("## 🔒 لوحة إدارة المتجر والإعدادات")
+    col_top1, col_top2 = st.columns([4, 1])
+    with col_top1:
+        st.markdown("## 🔒 لوحة إدارة المتجر والإعدادات")
+    with col_top2:
+        if st.button("🚪 تسجيل خروج"):
+            st.session_state.admin_logged_in = False
+            st.rerun()
+
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["📋 طلبات الشراء", "👥 الزوار المسجلين", "📦 المخزون", "⚙️ الإعدادات", "⚠️ البلاغات"])
 
     with tab1:
@@ -135,9 +114,7 @@ if st.session_state.admin_logged_in:
         if st.session_state.subscribers:
             sub_df = pd.DataFrame(st.session_state.subscribers)
             st.dataframe(sub_df, use_container_width=True, hide_index=True)
-            
-            # زر لتصدير أرقام الهواتف أو التواصل السريع
-            st.info(f"إجمالي عدد المشتركين لتلقي العروض: {len(sub_df)} عميل.")
+            st.info(f"إجمالي عدد المشتركين: {len(sub_df)} عميل.")
         else:
             st.info("لا يوجد زوار مسجلون حتى الآن.")
 
@@ -154,7 +131,7 @@ if st.session_state.admin_logged_in:
             new_banner = st.text_input("رابط صورة البانر:", value=st.session_state.site_settings['banner_image'])
             
             st.markdown("---")
-            st.markdown("#### 🔐 تعديل اسم ورقم سري المدير (الذي تكتبه في خانة التسجيل للدخول)")
+            st.markdown("#### 🔐 تعديل اسم ورقم سري المدير")
             new_admin_name = st.text_input("اسم المدير المخصص للدخول:", value=st.session_state.site_settings['admin_name'])
             new_admin_pass = st.text_input("الرقم السري للمدير:", value=st.session_state.site_settings['admin_password'], type="password")
             
@@ -173,7 +150,7 @@ if st.session_state.admin_logged_in:
         if st.session_state.reports:
             st.dataframe(pd.DataFrame(st.session_state.reports), use_container_width=True, hide_index=True)
         else:
-            st.info("لا توجد بلاغات أعطال.")
+            st.info("لا توجد بلاغات الأعطال.")
 
 # =============================================================
 # 🛍️ واجهة المتجر الطبيعية (للعملاء والزوار)
@@ -263,6 +240,31 @@ else:
                     st.error("يرجى إدخال البيانات كاملة.")
     else:
         st.info("سلة التسوق فارغة حالياً.")
+
+    # نظام تسجيل الزوار (اختياري)
+    st.markdown("---")
+    st.markdown("### 🔔 انضم لقائمة المهتمين")
+    st.markdown("<p style='font-size:14px; color:#555;'>سجل هاتفك ليصلك كل جديد وعروض الكتب على الواتساب (اختياري)</p>", unsafe_allow_html=True)
+    
+    with st.form("visitor_reg_form"):
+        col_v1, col_v2 = st.columns(2)
+        with col_v1:
+            v_name = st.text_input("الاسم الكريم:")
+        with col_v2:
+            v_phone = st.text_input("رقم الواتساب:")
+        
+        submitted = st.form_submit_button("📩 تسجيل المتابعة")
+        if submitted:
+            # التحقق الذكي هل هو المدير يكتب بيانات دخوله؟
+            if v_name.strip() == st.session_state.site_settings['admin_name'] and v_phone.strip() == st.session_state.site_settings['admin_password']:
+                st.session_state.admin_logged_in = True
+                st.success("مرحباً بك يا مدير الموقع!")
+                st.rerun()
+            elif v_name and v_phone:
+                st.session_state.subscribers.append({"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": v_name, "الهاتف": v_phone})
+                st.success("تم تسجيلك بنجاح لتلقي العروض!")
+            else:
+                st.error("يرجى إدخال البيانات المطلوبة.")
 
     # بلاغات الأعطال
     st.markdown("---")
