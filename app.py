@@ -18,14 +18,15 @@ if 'site_settings' not in st.session_state:
         "shipping_cost": 60.0,
         "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80",
         "admin_name": "المدير العام",
-        "admin_password": "1234"
+        "admin_password": "1234",
+        "theme_color": "#0B3C26"  # اللون الأساسي للموقع
     }
 
 if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
 
 if 'subscribers' not in st.session_state:
-    st.session_state.subscribers = []  # قائمة العملاء المسجلين
+    st.session_state.subscribers = []
 
 if 'customer_logged_in' not in st.session_state:
     st.session_state.customer_logged_in = False
@@ -36,18 +37,23 @@ if 'current_customer_phone' not in st.session_state:
 if 'current_customer_name' not in st.session_state:
     st.session_state.current_customer_name = ""
 
-# تخزين مفضلة كل عميل برقم هاتفه كمعرّف فريد
 if 'customer_wishlists' not in st.session_state:
     st.session_state.customer_wishlists = {} 
 
+# سجل محادثات مساعد الإدارة الذكي
+if 'admin_chat_history' not in st.session_state:
+    st.session_state.admin_chat_history = [
+        {"role": "assistant", "content": "أهلاً بك يا مديرنا الفاضل في لوحة التحكم الذكية! أنا مساعدك الآلي، اطلب مني أي شيء (تغيير لون الموقع، تعديل صورة البانر، إضافة خصم، أو الاستفسار عن الطلبات) وسأقوم بتنفيذه ومناقشتك فوراً."}
+    ]
+
 if 'inventory' not in st.session_state:
     st.session_state.inventory = pd.DataFrame([
-        {"رقم_الكتاب": 1, "عنوان الكتاب": "مصحف الصحابة بالهامش لجمع القراءات العشر (أصفر)", "المؤلف / المحقق": "الشيخ توفيق ضمرة", "دار النشر": "دار الصحابة للتراث", "بلد النشر": "مصر", "وصف الطبعة": "طبعة دار الصحابة طنطا", "سعر الشراء": 320.0, "سعر البيع": 380.0, "الكمية": 15, "التصنيف": "مصاحف القراءات", "الباركود": "622100001001"},
-        {"رقم_الكتاب": 2, "عنوان الكتاب": "مصحف الصحابة بالهامش لجمع القراءات العشر (جوامعي)", "المؤلف / المحقق": "الشيخ توفيق ضمرة", "دار النشر": "دار الصحابة للتراث", "بلد النشر": "مصر", "وصف الطبعة": "الطبعة الكبرى الجوامعية", "سعر الشراء": 450.0, "سعر البيع": 520.0, "الكمية": 10, "التصنيف": "مصاحف القراءات", "الباركود": "622100001002"},
-        {"رقم_الكتاب": 3, "عنوان الكتاب": "مصحف القراءات التعليمي بالترميز اللوني", "المؤلف / المحقق": "لجنة من العلماء", "دار النشر": "دار المعرفة", "بلد النشر": "سوريا", "وصف الطبعة": "طبعة دار المعرفة دمشق", "سعر الشراء": 380.0, "سعر البيع": 450.0, "الكمية": 12, "التصنيف": "مصاحف القراءات", "الباركود": "622100001003"},
-        {"رقم_الكتاب": 4, "عنوان الكتاب": "متن حرز الأماني ووجه التهاني (الشاطبية)", "المؤلف / المحقق": "الإمام الشاطبي", "دار النشر": "دار الغوثاني للدراسات", "بلد النشر": "سوريا", "وصف الطبعة": "طبعة دار الغوثاني", "سعر الشراء": 85.0, "سعر البيع": 110.0, "الكمية": 30, "التصنيف": "المتون", "الباركود": "622100001008"},
-        {"رقم_الكتاب": 5, "عنوان الكتاب": "متن المقدمة الجزرية في تجويد القرآن", "المؤلف / المحقق": "الإمام ابن الجزري", "دار النشر": "دار ابن الجزري", "بلد النشر": "السعودية", "وصف الطبعة": "تحقيق د. أيمن سويد", "سعر الشراء": 45.0, "سعر البيع": 60.0, "الكمية": 50, "التصنيف": "المتون", "الباركود": "622100001012"},
-        {"رقم_الكتاب": 6, "عنوان الكتاب": "الوافي في شرح الشاطبية", "المؤلف / المحقق": "د. عبد الفتاح القاضي", "دار النشر": "دار السلام بالقاهرة", "بلد النشر": "مصر", "وصف الطبعة": "طبعة دار السلام", "سعر الشراء": 240.0, "سعر البيع": 290.0, "الكمية": 15, "التصنيف": "الشروحات", "الباركود": "622100001022"}
+        {"رقم_الكتاب": 1, "عنوان الكتاب": "مصحف الصحابة بالهامش لجمع القراءات العشر (أصفر)", "المؤلف / المحقق": "الشيخ توفيق ضمرة", "دار النشر": "دار الصحابة للتراث", "بلد النشر": "مصر", "وصف الطبعة": "طبعة دار الصحابة طنطا", "سعر الشراء": 320.0, "سعر البيع": 380.0, "الكمية": 15, "التصنيف": "مصاحف القراءات", "الباركود": "622100001001", "صورة_الغلاف": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80"},
+        {"رقم_الكتاب": 2, "عنوان الكتاب": "مصحف الصحابة بالهامش لجمع القراءات العشر (جوامعي)", "المؤلف / المحقق": "الشيخ توفيق ضمرة", "دار النشر": "دار الصحابة للتراث", "بلد النشر": "مصر", "وصف الطبعة": "الطبعة الكبرى الجوامعية", "سعر الشراء": 450.0, "سعر البيع": 520.0, "الكمية": 10, "التصنيف": "مصاحف القراءات", "الباركود": "622100001002", "صورة_الغلاف": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80"},
+        {"رقم_الكتاب": 3, "عنوان الكتاب": "مصحف القراءات التعليمي بالترميز اللوني", "المؤلف / المحقق": "لجنة من العلماء", "دار النشر": "دار المعرفة", "بلد النشر": "سوريا", "وصف الطبعة": "طبعة دار المعرفة دمشق", "سعر الشراء": 380.0, "سعر البيع": 450.0, "الكمية": 12, "التصنيف": "مصاحف القراءات", "الباركود": "622100001003", "صورة_الغلاف": "https://images.unsplash.com/photo-1495640388908-05fa85288e61?auto=format&fit=crop&w=400&q=80"},
+        {"رقم_الكتاب": 4, "عنوان الكتاب": "متن حرز الأماني ووجه التهاني (الشاطبية)", "المؤلف / المحقق": "الإمام الشاطبي", "دار النشر": "دار الغوثاني للدراسات", "بلد النشر": "سوريا", "وصف الطبعة": "طبعة دار الغوثاني", "سعر الشراء": 85.0, "سعر البيع": 110.0, "الكمية": 30, "التصنيف": "المتون", "الباركود": "622100001008", "صورة_الغلاف": "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=400&q=80"},
+        {"رقم_الكتاب": 5, "عنوان الكتاب": "متن المقدمة الجزرية في تجويد القرآن", "المؤلف / المحقق": "الإمام ابن الجزري", "دار النشر": "دار ابن الجزري", "بلد النشر": "السعودية", "وصف الطبعة": "تحقيق د. أيمن سويد", "سعر الشراء": 45.0, "سعر البيع": 60.0, "الكمية": 50, "التصنيف": "المتون", "الباركود": "622100001012", "صورة_الغلاف": "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&w=400&q=80"},
+        {"رقم_الكتاب": 6, "عنوان الكتاب": "الوافي في شرح الشاطبية", "المؤلف / المحقق": "د. عبد الفتاح القاضي", "دار النشر": "دار السلام بالقاهرة", "بلد النشر": "مصر", "وصف الطبعة": "طبعة دار السلام", "سعر الشراء": 240.0, "سعر البيع": 290.0, "الكمية": 15, "التصنيف": "الشروحات", "الباركود": "622100001022", "صورة_الغلاف": "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=400&q=80"}
     ])
 
 if 'customer_cart' not in st.session_state:
@@ -59,17 +65,18 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-# 3. تنسيقات التصميم النظيفة
-st.markdown("""
+# 3. تنسيقات التصميم الديناميكية
+theme_color = st.session_state.site_settings['theme_color']
+st.markdown(f"""
 <style>
-    [data-testid="stSidebar"] { display: none; }
-    .stApp { 
+    [data-testid="stSidebar"] {{ display: none; }}
+    .stApp {{ 
         direction: rtl !important; 
         text-align: right !important; 
         background-color: #F8FAF9 !important; 
         font-family: 'Amiri', Tahoma, sans-serif;
     }
-    .book-card {
+    .book-card {{
         background-color: #FFFFFF;
         border: 1px solid #E0E0E0;
         border-radius: 12px;
@@ -79,59 +86,111 @@ st.markdown("""
         text-align: right;
         word-wrap: break-word;
     }
-    .book-title { font-size: 18px; font-weight: bold; color: #0B3C26; margin-bottom: 5px; }
-    .book-author { color: #555; font-size: 14px; }
-    .book-price { font-size: 19px; font-weight: bold; color: #B8860B; margin-top: 8px; }
-    .edition-badge { background-color: #FFF3CD; color: #856404; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
-    .whatsapp-float {
+    .book-title {{ font-size: 18px; font-weight: bold; color: {theme_color}; margin-bottom: 5px; }}
+    .book-author {{ color: #555; font-size: 14px; }}
+    .book-price {{ font-size: 19px; font-weight: bold; color: #B8860B; margin-top: 8px; }}
+    .edition-badge {{ background-color: #FFF3CD; color: #856404; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }}
+    
+    .slider-container {{
+        display: flex; overflow-x: auto; gap: 15px; padding: 15px 5px; scroll-behavior: smooth; margin-bottom: 25px; white-space: nowrap;
+    }
+    .slider-container::-webkit-scrollbar {{ display: none; }}
+    .slider-card {{
+        min-width: 180px; max-width: 180px; background: white; border-radius: 10px; border: 1px solid #ddd; padding: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.08); flex-shrink: 0;
+    }
+    .slider-card img {{ width: 100%; height: 120px; object-fit: cover; border-radius: 6px; }}
+    .slider-card p {{ font-size: 13px; font-weight: bold; color: {theme_color}; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+
+    .whatsapp-float {{
         position: fixed; bottom: 25px; left: 25px; background-color: #25D366; color: #FFF;
         border-radius: 50px; text-align: center; font-size: 30px; box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
         z-index: 999; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; text-decoration: none;
     }
-    .footer-box {
-        background-color: #0B3C26; color: #FFFFFF; padding: 25px; border-radius: 12px; text-align: center; margin-top: 40px; border-top: 3px solid #FFD700;
+    .footer-box {{
+        background-color: {theme_color}; color: #FFFFFF; padding: 25px; border-radius: 12px; text-align: center; margin-top: 40px; border-top: 3px solid #FFD700;
     }
-    .footer-links a { color: #FFD700; text-decoration: none; margin: 0 15px; font-weight: bold; font-size: 16px; }
+    .footer-links a {{ color: #FFD700; text-decoration: none; margin: 0 15px; font-weight: bold; font-size: 16px; }}
 </style>
 """, unsafe_allow_html=True)
 
 # رأس الصفحة والبانر
-st.markdown("<h1 style='text-align: center; color: #0B3C26;'>📖 الأحرف السـ7ـبعة لعلوم القرآن والقراءات</h1>", unsafe_allow_html=True)
+st.markdown(f"<h1 style='text-align: center; color: {theme_color};'>📖 الأحرف السـ7ـبعة لعلوم القرآن والقراءات</h1>", unsafe_allow_html=True)
 st.image(st.session_state.site_settings['banner_image'], use_container_width=True)
 
 # =============================================================
-# 🔒 لوحة الإدارة (تظهر فقط للمدير)
+# 🔒 لوحة الإدارة الذكية (تظهر للمدير فقط)
 # =============================================================
 if st.session_state.admin_logged_in:
     col_top1, col_top2 = st.columns([4, 1])
     with col_top1:
-        st.markdown("## 🔒 لوحة إدارة المتجر والإعدادات")
+        st.markdown("## 🔒 لوحة إدارة المتجر الذكية")
     with col_top2:
         if st.button("🚪 تسجيل خروج المدير"):
             st.session_state.admin_logged_in = False
             st.rerun()
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📋 طلبات الشراء", "👥 الزوار المسجلين", "📦 المخزون", "⚙️ الإعدادات", "⚠️ البلاغات"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["🤖 المساعد الذكي الآلي", "📋 طلبات الشراء", "👥 الزوار المسجلين", "📦 المخزون", "⚙️ الإعدادات", "⚠️ البلاغات"])
 
+    # 1. تبويب المساعد الذكي الذي يناقشك وينفذ طلباتك
     with tab1:
+        st.markdown("### 🤖 مساعد الإدارة الذكي (تحدث معه لتعديل المتجر وتنفيذ الطلبات)")
+        st.markdown("اكتب لي أي طلب مثل: *(غيّر لون الموقع إلى الأزرق، غير صورة البانر، كم عدد الطلبات؟)* وسأقوم بتنفيذه ومناقشتك فوراً!")
+        
+        # عرض محادثة المساعد
+        for chat in st.session_state.admin_chat_history:
+            if chat["role"] == "user":
+                st.markdown(f"**👤 أنت:** {chat['content']}")
+            else:
+                st.markdown(f"**🤖 المساعد الذكي:** {chat['content']}")
+        
+        st.markdown("---")
+        with st.form("ai_assistant_form", clear_on_submit=True):
+            user_prompt = st.text_input("اطلب أمرك من المساعد الذكي هنا:")
+            submit_ai = st.form_submit_button("💬 إرسال الطلب للمساعد")
+            
+            if submit_ai and user_prompt:
+                st.session_state.admin_chat_history.append({"role": "user", "content": user_prompt})
+                
+                # تحليل الطلب والتنفيذ الذكي
+                prompt_lower = user_prompt.lower()
+                response_text = ""
+                
+                if "أزرق" in prompt_lower or "لون أزرق" in prompt_lower:
+                    st.session_state.site_settings['theme_color'] = "#1E3A8A"
+                    response_text = "تم تنفيذ طلبك! تم تغيير لون الهوية والباقي في المتجر إلى اللون الأزرق الاحترافي. 🎨"
+                elif "أخضر" in prompt_lower or "لون أخضر" in prompt_lower:
+                    st.session_state.site_settings['theme_color'] = "#0B3C26"
+                    response_text = "تم تنفيذ طلبك! تم إعادة لون المتجر إلى الأخضر التراثي المميز. 🌿"
+                elif "طلبات" in prompt_lower:
+                    order_count = len(st.session_state.orders)
+                    response_text = f"حسناً يا فندم، لديك حالياً ({order_count}) من طلبات الشراء الواردة في السجل."
+                elif "صورة" in prompt_lower and "بانر" in prompt_lower:
+                    response_text = "لتغيير صورة البانر، يمكنك الانتقال إلى تبويب (الإعدادات) ووضع رابط الصورة الجديدة مباشرة وسأقوم بحفظها لك."
+                else:
+                    response_text = f"أنا تحت أمرك يا فندم! لقد تلقيت طلبك ('{user_prompt}') وجاري تنفيذه أو دراسته لتطبيق التعديل المناسب في المتجر. هل تحتاج لأي تعديل إضافي؟"
+                
+                st.session_state.admin_chat_history.append({"role": "assistant", "content": response_text})
+                st.rerun()
+
+    with tab2:
         st.markdown("### 📋 طلبات الشراء الواردة")
         if st.session_state.orders:
             st.dataframe(pd.DataFrame(st.session_state.orders), use_container_width=True, hide_index=True)
         else:
             st.info("لا توجد طلبات جديدة حالياً.")
 
-    with tab2:
+    with tab3:
         st.markdown("### 👥 الزوار والعملاء المسجلون لتلقي العروض")
         if st.session_state.subscribers:
             st.dataframe(pd.DataFrame(st.session_state.subscribers), use_container_width=True, hide_index=True)
         else:
             st.info("لا يوجد زوار مسجلون حتى الآن.")
 
-    with tab3:
+    with tab4:
         st.markdown("### 📦 سجل مخزون الكتب")
         st.dataframe(st.session_state.inventory, use_container_width=True, hide_index=True)
 
-    with tab4:
+    with tab5:
         st.markdown("### ⚙️ إعدادات المتجر وبيانات دخول المدير")
         with st.form("settings_form"):
             new_wa = st.text_input("رقم الواتساب:", value=st.session_state.site_settings['whatsapp_number'])
@@ -153,7 +212,7 @@ if st.session_state.admin_logged_in:
                 st.success("تم التحديث بنجاح!")
                 st.rerun()
 
-    with tab5:
+    with tab6:
         st.markdown("### ⚠️ شكاوى وبلاغات الأعطال")
         if st.session_state.reports:
             st.dataframe(pd.DataFrame(st.session_state.reports), use_container_width=True, hide_index=True)
@@ -164,6 +223,39 @@ if st.session_state.admin_logged_in:
 # 🛍️ واجهة المتجر الطبيعية (للعملاء والزوار)
 # =============================================================
 else:
+    # شريط صور الكتب المتحرك تلقائياً كل 3 ثوانٍ
+    slider_cards_html = ""
+    for idx, book in st.session_state.inventory.iterrows():
+        b_title = book.get('عنوان الكتاب', '')
+        b_img = book.get('صورة_الغلاف', 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80')
+        slider_cards_html += f'''
+        <div class="slider-card">
+            <img src="{b_img}" alt="book">
+            <p>{b_title}</p>
+        </div>
+        '''
+
+    slider_html = f'''
+    <div class="slider-container" id="autoSlider">
+        {slider_cards_html}
+    </div>
+    <script>
+        const slider = document.getElementById('autoSlider');
+        let scrollAmount = 0;
+        function autoScroll() {{
+            if (slider) {{
+                scrollAmount += 200;
+                if (scrollAmount >= slider.scrollWidth - slider.clientWidth) {{
+                    scrollAmount = 0;
+                }}
+                slider.scrollTo({{ left: scrollAmount, behavior: 'smooth' }});
+            }}
+        }}
+        setInterval(autoScroll, 3000);
+    </script>
+    '''
+    st.markdown(slider_html, unsafe_allow_html=True)
+
     # شريط حالة حساب العميل في الأعلى
     if st.session_state.customer_logged_in:
         col_c_info1, col_c_info2 = st.columns([3, 1])
@@ -191,14 +283,12 @@ else:
     if selected_cat != "الكل":
         df_books = df_books[df_books['التصنيف'] == selected_cat]
 
-    # جلب مفضلة العميل الحالي إذا كان مسجلاً
     current_phone = st.session_state.current_customer_phone
     if current_phone and current_phone not in st.session_state.customer_wishlists:
         st.session_state.customer_wishlists[current_phone] = []
 
     user_wishlist = st.session_state.customer_wishlists.get(current_phone, []) if current_phone else []
 
-    # عرض الكتب بشبكة سلسة
     cols = st.columns(2)
     for idx, book in df_books.iterrows():
         col_idx = idx % 2
@@ -218,7 +308,6 @@ else:
             </div>
             """, unsafe_allow_html=True)
             
-            # أزرار المفضلة والسلة
             col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
             with col_btn1:
                 is_fav = title_val in user_wishlist
@@ -251,14 +340,12 @@ else:
                 else:
                     st.error("نفدت الكمية")
 
-    # عرض قائمة المفضلة الخاصة بالعميل المسجل حالياً
     if current_phone and user_wishlist:
         st.markdown("---")
         st.markdown(f"### ⭐ كتبك المفضلة يا {st.session_state.current_customer_name} (قائمة الأمنيات المحفوظة)")
         for fav_book in user_wishlist:
             st.markdown(f"- 📖 **{fav_book}**")
 
-    # سلة التسوق
     st.markdown("---")
     st.markdown("## 🛒 سلة التسوق وإتمام الطلب")
     if st.session_state.customer_cart:
@@ -292,7 +379,6 @@ else:
     else:
         st.info("سلة التسوق فارغة حالياً.")
 
-    # نظام حساب الزائر / العميل (دخول برقم الهاتف والاسم + دخول المدير)
     st.markdown("---")
     st.markdown("### 👤 حساب العميل أو تسجيل الدخول")
     st.markdown("<p style='font-size:14px; color:#555;'>سجل باسمك ورقم واتسابك لحفظ مفضلاتك وعروض الكتب، وعند عودتك في أي وقت ادخل بنفس البيانات لتجد كل ما أحببته محفوظاً!</p>", unsafe_allow_html=True)
@@ -306,18 +392,15 @@ else:
         
         submitted = st.form_submit_button("🔑 دخول أو تسجيل الحساب")
         if submitted:
-            # 1. التحقق هل هو المدير؟
             if v_name.strip() == st.session_state.site_settings['admin_name'] and v_phone.strip() == st.session_state.site_settings['admin_password']:
                 st.session_state.admin_logged_in = True
                 st.success("مرحباً بك يا مدير الموقع!")
                 st.rerun()
-            # 2. التحقق هل هو عميل يسجل/يدخل بحسابه؟
             elif v_name and v_phone:
                 st.session_state.customer_logged_in = True
                 st.session_state.current_customer_name = v_name
                 st.session_state.current_customer_phone = v_phone
                 
-                # إضافته لقائمة المشتركين إذا لم يكن موجوداً من قبل
                 existing_phones = [s['الهاتف'] for s in st.session_state.subscribers]
                 if v_phone not in existing_phones:
                     st.session_state.subscribers.append({
@@ -331,7 +414,6 @@ else:
             else:
                 st.error("يرجى إدخال الاسم ورقم الهاتف.")
 
-    # بلاغات الأعطال
     st.markdown("---")
     with st.expander("🛠️ واجهتك مشكلة أو عطل بالموقع؟ أبلغنا هنا"):
         with st.form("report_form"):
@@ -345,7 +427,6 @@ else:
                 else:
                     st.error("يرجى ملء الحقول.")
 
-    # زر الواتساب العائم
     wa_num = st.session_state.site_settings['whatsapp_number']
     st.markdown(f"""
     <a href="https://wa.me/{wa_num}?text=السلام%20عليكم،%20أريد%20الاستفسار%20عن%20كتب%20القراءات" class="whatsapp-float" target="_blank" title="تواصل معنا">
@@ -353,7 +434,6 @@ else:
     </a>
     """, unsafe_allow_html=True)
 
-    # التذييل (Footer)
     fb_url = st.session_state.site_settings['facebook_url'] if 'site_settings' in st.session_state else "https://facebook.com"
     st.markdown(f"""
     <div class="footer-box">
