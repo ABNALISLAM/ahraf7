@@ -28,128 +28,6 @@ if 'font_weight' not in st.session_state:
 if 'bg_color' not in st.session_state:
     st.session_state.bg_color = "#F8FAF9"
 
-# -------------------------------------------------------------
-# 2. لوحة التحكم الجانبية للتخصيص
-# -------------------------------------------------------------
-st.sidebar.title("📌 القائمة الرئيسية")
-mode = st.sidebar.radio("اختر الواجهة المطلوبة:", ["🛍️ المتجر الإلكتروني (للعملاء والزوار)", "🔒 لوحة تحكم الإدارة (خاصة بالمالك)"])
-
-st.sidebar.markdown("---")
-with st.sidebar.expander("🎨 تخصيص ألوان وسمك الخطوط بالموقع"):
-    st.write("تحكم في مظهر متجرك بسهولة:")
-    st.session_state.theme_primary = st.color_picker("اللون الرئيسي للموقع والشريط:", st.session_state.theme_primary)
-    st.session_state.text_color = st.color_picker("لون عناوين الكتب والأسعار:", st.session_state.text_color)
-    st.session_state.theme_gold = st.color_picker("لون الخط الذهبي في البانر:", st.session_state.theme_gold)
-    st.session_state.bg_color = st.color_picker("لون خلفية الموقع العامة:", st.session_state.bg_color)
-    
-    font_weight_choice = st.selectbox("سُمك خط عناوين الكتب:", ["عريض ممتاز (Bold)", "متوسط (Medium)", "ثقيل جداً (Black)"])
-    if "ثقيل" in font_weight_choice:
-        st.session_state.font_weight = "900"
-    elif "عريض" in font_weight_choice:
-        st.session_state.font_weight = "bold"
-    else:
-        st.session_state.font_weight = "500"
-
-st.markdown(f"""
-<style>
-    .stApp {{ 
-        direction: rtl !important; 
-        text-align: right !important; 
-        background-color: {st.session_state.bg_color} !important; 
-        font-family: 'Amiri', 'Traditional Arabic', Tahoma, sans-serif;
-    }}
-    
-    /* تصميم بانر مبهر ومطور باسم المكتبة الفاخر */
-    .header-box {{
-        background: radial-gradient(circle, {st.session_state.theme_secondary} 0%, {st.session_state.theme_primary} 100%);
-        padding: 30px 20px;
-        border-radius: 18px;
-        color: {st.session_state.theme_gold};
-        text-align: center;
-        margin-bottom: 25px;
-        box-shadow: 0px 6px 20px rgba(11, 60, 38, 0.25);
-        border: 2px solid {st.session_state.theme_gold};
-        direction: rtl;
-        position: relative;
-        overflow: hidden;
-    }}
-    .header-title {{ 
-        font-size: 40px; 
-        font-weight: 900; 
-        margin-bottom: 10px; 
-        font-family: 'Amiri', serif;
-        letter-spacing: 1px;
-        text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
-    }}
-    .header-title span {{
-        color: #FFFFFF;
-        background: linear-gradient(180deg, #FFFFFF 0%, #FFD700 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }}
-    .header-sub {{ 
-        font-size: 18px; 
-        color: #E8F5E9; 
-        font-weight: 500;
-        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-    }}
-
-    .book-card {{
-        background-color: #FFFFFF;
-        border: 1px solid #E0E0E0;
-        border-radius: 12px;
-        padding: 18px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        text-align: right;
-        direction: rtl;
-    }}
-    .book-title {{ font-size: 20px; font-weight: {st.session_state.font_weight}; color: {st.session_state.text_color}; margin-bottom: 6px; }}
-    .book-author {{ color: #444; font-size: 15px; margin-bottom: 4px; }}
-    .book-cat {{ font-size: 13px; color: {st.session_state.theme_primary}; background-color: #E8F5E9; padding: 3px 10px; border-radius: 12px; display: inline-block; font-weight: bold; }}
-    .book-price {{ font-size: 22px; font-weight: bold; color: #B8860B; margin-top: 10px; }}
-    .edition-badge {{ background-color: #FFF3CD; color: #856404; padding: 3px 8px; border-radius: 8px; font-size: 13px; font-weight: bold; display: inline-block; }}
-
-    table {{
-        width: 100%;
-        border-collapse: collapse;
-        direction: rtl;
-        text-align: right;
-        background-color: #FFFFFF;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }}
-    th {{
-        background-color: {st.session_state.theme_primary} !important;
-        color: {st.session_state.theme_gold} !important;
-        padding: 12px 15px;
-        font-size: 16px;
-        font-weight: {st.session_state.font_weight};
-        font-family: 'Amiri', serif;
-        border-bottom: 2px solid #072A1B;
-    }}
-    td {{
-        padding: 10px 15px;
-        border-bottom: 1px solid #EAEAEA;
-        color: #333333;
-        font-size: 14px;
-    }}
-    tr:nth-child(even) {{
-        background-color: #F2F7F4 !important;
-    }}
-    tr:hover {{
-        background-color: #E8F5E9 !important;
-    }}
-</style>
-""", unsafe_allow_html=True)
-
-if not os.path.exists("uploads"):
-    os.makedirs("uploads")
-
-# -------------------------------------------------------------
-# 3. قاعدة البيانات الأساسية الآمنة
-# -------------------------------------------------------------
 if 'inventory' not in st.session_state:
     st.session_state.inventory = pd.DataFrame([
         {"رقم_الكتاب": 1, "عنوان الكتاب": "مصحف الصحابة بالهامش لجمع القراءات العشر (أصفر)", "المؤلف / المحقق": "الشيخ توفيق ضمرة", "دار النشر": "دار الصحابة للتراث", "بلد النشر": "مصر", "وصف الطبعة": "طبعة دار الصحابة طنطا", "سعر الشراء": 320.0, "سعر البيع": 380.0, "الكمية": 15, "التصنيف": "مصاحف القراءات", "الباركود": "622100001001", "الصورة": ""},
@@ -169,7 +47,101 @@ if 'orders' not in st.session_state:
 if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
 
-# Header Banner بتصميم مبهر وإبراز الرقم 7 بطريقة فنية
+# -------------------------------------------------------------
+# 2. القائمة الجانبية وتحديد الصلاحيات (إخفاء الإدارة عن العملاء)
+# -------------------------------------------------------------
+st.sidebar.title("📌 القائمة الرئيسية")
+
+# التحقق من حالة تسجيل دخول المشرف
+if not st.session_state.admin_logged_in:
+    # العميل العادي يرى المتجر فقط، ويُعرض له زر صغير لتسجيل دخول المالك في أسفل القائمة
+    mode = "🛍️ المتجر الإلكتروني (للعملاء والزوار)"
+    st.sidebar.info("أهلاً بك زائرنا الكريم في متجرنا.")
+    
+    st.sidebar.markdown("---")
+    with st.sidebar.expander("🔒 دخول المالك / الإدارة"):
+        admin_pass_input = st.text_input("كلمة مرور الإدارة:", type="password", key="sidebar_admin_pwd")
+        if st.button("دخول كمسؤول"):
+            if admin_pass_input == "1234":
+                st.session_state.admin_logged_in = True
+                st.success("تم تسجيل الدخول بنجاح!")
+                st.rerun()
+            else:
+                st.error("كلمة المرور غير صحيحة.")
+else:
+    # إذا كان المالك مسجلاً للدخول، يختار بين المتجر أو لوحة التحكم بأمان تام
+    mode = st.sidebar.radio("اختر الواجهة المطلوبة:", ["🛍️ المتجر الإلكتروني (للعملاء والزوار)", "🔒 لوحة تحكم الإدارة (خاصة بالمالك)"])
+    st.sidebar.markdown("---")
+    if st.sidebar.button("🚪 تسجيل خروج المالك"):
+        st.session_state.admin_logged_in = False
+        st.rerun()
+
+    with st.sidebar.expander("🎨 تخصيص ألوان وسمك الخطوط بالموقع"):
+        st.session_state.theme_primary = st.color_picker("اللون الرئيسي:", st.session_state.theme_primary)
+        st.session_state.text_color = st.color_picker("لون النصوص:", st.session_state.text_color)
+        st.session_state.theme_gold = st.color_picker("لون الذهبي:", st.session_state.theme_gold)
+        st.session_state.bg_color = st.color_picker("لون الخلفية:", st.session_state.bg_color)
+
+# -------------------------------------------------------------
+# 3. تنسيقات الـ CSS المحسنة لمنع تداخل الحروف والأخطاء البصرية
+# -------------------------------------------------------------
+st.markdown(f"""
+<style>
+    .stApp {{ 
+        direction: rtl !important; 
+        text-align: right !important; 
+        background-color: {st.session_state.bg_color} !important; 
+        font-family: 'Amiri', 'Traditional Arabic', Tahoma, sans-serif;
+    }}
+    
+    .header-box {{
+        background: radial-gradient(circle, {st.session_state.theme_secondary} 0%, {st.session_state.theme_primary} 100%);
+        padding: 30px 20px;
+        border-radius: 18px;
+        color: {st.session_state.theme_gold};
+        text-align: center;
+        margin-bottom: 25px;
+        box-shadow: 0px 6px 20px rgba(11, 60, 38, 0.25);
+        border: 2px solid {st.session_state.theme_gold};
+        direction: rtl;
+    }}
+    .header-title {{ 
+        font-size: 36px; 
+        font-weight: 900; 
+        margin-bottom: 10px; 
+        font-family: 'Amiri', serif;
+    }}
+    .header-title span {{
+        color: #FFFFFF;
+    }}
+    .header-sub {{ 
+        font-size: 16px; 
+        color: #E8F5E9; 
+        font-weight: 500;
+    }}
+
+    .book-card {{
+        background-color: #FFFFFF;
+        border: 1px solid #E0E0E0;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        text-align: right;
+        direction: rtl;
+    }}
+    .book-title {{ font-size: 18px; font-weight: bold; color: {st.session_state.text_color}; margin-bottom: 6px; }}
+    .book-author {{ color: #444; font-size: 14px; margin-bottom: 4px; }}
+    .book-cat {{ font-size: 12px; color: {st.session_state.theme_primary}; background-color: #E8F5E9; padding: 3px 10px; border-radius: 12px; display: inline-block; font-weight: bold; }}
+    .book-price {{ font-size: 20px; font-weight: bold; color: #B8860B; margin-top: 10px; }}
+    .edition-badge {{ background-color: #FFF3CD; color: #856404; padding: 3px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; display: inline-block; }}
+</style>
+""", unsafe_allow_html=True)
+
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+
+# Header Banner
 st.markdown("""
 <div class="header-box">
     <div class="header-title">📖 مَكْتَبَةُ الأَحْرُفِ السـ<span>7</span>ـبْعَة</div>
@@ -208,10 +180,6 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
     for idx, book in df_books.iterrows():
         col_idx = idx % 2
         with cols[col_idx]:
-            img_path = str(book.get('الصورة', ''))
-            if img_path and os.path.exists(img_path):
-                st.image(img_path, use_container_width=True)
-            
             title_val = book.get('عنوان الكتاب', '')
             author_val = book.get('المؤلف / المحقق', '')
             pub_val = book.get('دار النشر', '')
@@ -255,7 +223,7 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
     st.markdown("## 🛒 سلة التسوق وإتمام الطلب")
     if st.session_state.customer_cart:
         cart_df = pd.DataFrame(st.session_state.customer_cart)
-        st.markdown(cart_df.to_html(index=False, escape=False), unsafe_allow_html=True)
+        st.dataframe(cart_df, use_container_width=True, hide_index=True)
         
         books_total = cart_df['الإجمالي'].sum()
         shipping_cost = 60.0
@@ -287,21 +255,11 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
         st.info("سلة التسوق فارغة حالياً.")
 
 # =============================================================
-# 🔒 الواجهة الثانية: لوحة تحكم الإدارة
+# 🔒 الواجهة الثانية: لوحة تحكم الإدارة (خاصة بالمالك حصراً)
 # =============================================================
 else:
-    st.subheader("🔒 لوحة إدارة المكتبة والمخزون")
-
-    if not st.session_state.admin_logged_in:
-        pwd = st.text_input("أدخل كلمة المرور الخاصة بالإدارة:", type="password")
-        if st.button("تسجيل الدخول للوحة التحكم"):
-            if pwd == "1234":
-                st.session_state.admin_logged_in = True
-                st.rerun()
-            else:
-                st.error("كلمة المرور غير صحيحة!")
-    else:
-        st.sidebar.button("🚪 الخروج من لوحة التحكم", on_click=lambda: st.session_state.update({"admin_logged_in": False}))
+    if st.session_state.admin_logged_in:
+        st.subheader("🔒 لوحة إدارة المكتبة والمخزون")
         
         tab1, tab2, tab3 = st.tabs([
             "📋 طلبات الشراء الواردة", 
@@ -314,13 +272,13 @@ else:
             if st.session_state.orders:
                 orders_df = pd.DataFrame(st.session_state.orders)
                 cols_to_show = [c for c in ['رقم_الطلب', 'التاريخ', 'اسم_العميل', 'الهاتف', 'الإجمالي', 'حالة_الطلب'] if c in orders_df.columns]
-                st.markdown(orders_df[cols_to_show].to_html(index=False, escape=False), unsafe_allow_html=True)
+                st.dataframe(orders_df[cols_to_show], use_container_width=True, hide_index=True)
             else:
                 st.info("لا توجد طلبات جديدة.")
 
         with tab2:
             st.markdown("### 📦 سجل مخزون المكتبة الكامل")
-            st.markdown(st.session_state.inventory.to_html(index=False, escape=False), unsafe_allow_html=True)
+            st.dataframe(st.session_state.inventory, use_container_width=True, hide_index=True)
 
         with tab3:
             st.markdown("### ➕ إضافة طبعة جديدة أو كتاب جديد مع توليد باركود")
