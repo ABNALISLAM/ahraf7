@@ -10,20 +10,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. تهيئة إعدادات الموقع والبيانات الأساسية (بما فيها الرقم السري)
+# 2. تهيئة إعدادات الموقع والبيانات الأساسية (الرقم السري 1234)
 if 'site_settings' not in st.session_state:
     st.session_state.site_settings = {
         "whatsapp_number": "201033393575",
         "facebook_url": "https://facebook.com",
         "shipping_cost": 60.0,
         "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80",
-        "admin_password": "1234"  # الرقم السري الافتراضي القابل للتغيير
+        "admin_password": "1234"
     }
 
-# 3. فحص الرابط للتحقق من المدير باستخدام الرقم السري المخزن حالياً
+# التحقق من الرابط برقم 1234
 query_params = st.query_params
-current_pass = st.session_state.site_settings['admin_password']
-is_admin_via_url = query_params.get("admin") == current_pass
+is_admin_via_url = query_params.get("admin") == "1234"
 
 if is_admin_via_url:
     st.session_state.admin_logged_in = True
@@ -50,7 +49,7 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-# 4. تنسيقات التصميم
+# 4. تنسيقات التصميم المحسنة لمنع أي تقطيع أو تداخل
 st.markdown("""
 <style>
     .stApp { 
@@ -67,11 +66,12 @@ st.markdown("""
         margin-bottom: 12px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         text-align: right;
+        word-wrap: break-word;
     }
     .book-title { font-size: 18px; font-weight: bold; color: #0B3C26; margin-bottom: 5px; }
     .book-author { color: #555; font-size: 14px; }
     .book-price { font-size: 19px; font-weight: bold; color: #B8860B; margin-top: 8px; }
-    .edition-badge { background-color: #FFF3CD; color: #856404; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+    .edition-badge { background-color: #FFF3CD; color: #856404; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
     .whatsapp-float {
         position: fixed; bottom: 25px; left: 25px; background-color: #25D366; color: #FFF;
         border-radius: 50px; text-align: center; font-size: 30px; box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
@@ -84,7 +84,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# القائمة الجانبية نظيفة وخالية من أي شيء للزوار
+# القائمة الجانبية للزوار
 st.sidebar.title("📖 الأحرف السـ7ـبعة")
 st.sidebar.markdown("لعلوم القرآن والقراءات الكريمة")
 
@@ -99,7 +99,7 @@ if st.session_state.admin_logged_in:
 st.image(st.session_state.site_settings['banner_image'], use_container_width=True)
 
 # =============================================================
-# 🔒 واجهة لوحة الإدارة (تظهر فقط عند الدخول بالرابط السري)
+# 🔒 واجهة لوحة الإدارة
 # =============================================================
 if st.session_state.admin_logged_in:
     st.markdown("## 🔒 لوحة إدارة المتجر والإعدادات")
@@ -128,13 +128,13 @@ if st.session_state.admin_logged_in:
             st.markdown("#### 🔐 تغيير الرقم السري للدخول للوحة الإدارة")
             new_pass_input = st.text_input("الرقم السري الجديد:", value=st.session_state.site_settings['admin_password'], type="password")
             
-            if st.form_submit_button("💾 حفظ التعديلات الرقم السري والإعدادات"):
+            if st.form_submit_button("💾 حفظ الإعدادات"):
                 st.session_state.site_settings['whatsapp_number'] = new_wa
                 st.session_state.site_settings['facebook_url'] = new_fb
                 st.session_state.site_settings['shipping_cost'] = new_shipping
                 st.session_state.site_settings['banner_image'] = new_banner
                 st.session_state.site_settings['admin_password'] = new_pass_input
-                st.success("تم تحديث الإعدادات والرقم السري بنجاح! (استخدم الرقم الجديد في رابط الدخول القادم)")
+                st.success("تم تحديث الإعدادات والرقم السري بنجاح!")
                 st.rerun()
 
     with tab4:
@@ -177,7 +177,7 @@ else:
             <div class="book-card">
                 <div class="book-title">{title_val}</div>
                 <div class="book-author">المؤلف: <b>{author_val}</b></div>
-                <div style="margin-top: 4px;"><span class="edition-badge">📖 {pub_val}</span></div>
+                <div style="margin-top: 6px;"><span class="edition-badge">📖 {pub_val}</span></div>
                 <div class="book-price">السعر: {price_val:,.2f} جنيه</div>
             </div>
             """, unsafe_allow_html=True)
@@ -240,12 +240,12 @@ else:
             r_name = st.text_input("اسمك الكريم:")
             r_msg = st.text_area("صف لنا المشكلة:")
             submit_report = st.form_submit_button("إرسال الإبلاغ")
-            if submit_report:
-                if r_name and r_msg:
-                    st.session_state.reports.append({"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": r_name, "المشكلة": r_msg})
-                    st.success("تم إرسال ملاحظتك بنجاح!")
-                else:
-                    st.error("يرجى ملء الحقول.")
+            if submit_report:خص
+            if r_name and r_msg:
+                st.session_state.reports.append({"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": r_name, "المشكلة": r_msg})
+                st.success("تم إرسال ملاحظتك بنجاح!")
+            else:
+                st.error("يرجى ملء الحقول.")
 
     # زر الواتساب العائم
     wa_num = st.session_state.site_settings['whatsapp_number']
