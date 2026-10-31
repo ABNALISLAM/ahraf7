@@ -64,18 +64,17 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-# 3. تنسيقات التصميم الديناميكية
-theme_color = st.session_state.site_settings['theme_color']
-st.markdown(f"""
+# 3. تنسيقات التصميم النظيفة الثابتة
+st.markdown("""
 <style>
-    [data-testid="stSidebar"] {{ display: none; }}
-    .stApp {{ 
+    [data-testid="stSidebar"] { display: none; }
+    .stApp { 
         direction: rtl !important; 
         text-align: right !important; 
         background-color: #F8FAF9 !important; 
         font-family: 'Amiri', Tahoma, sans-serif;
-    }}
-    .book-card {{
+    }
+    .book-card {
         background-color: #FFFFFF;
         border: 1px solid #E0E0E0;
         border-radius: 12px;
@@ -84,28 +83,74 @@ st.markdown(f"""
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         text-align: right;
         word-wrap: break-word;
-    }}
-    .book-title {{ font-size: 18px; font-weight: bold; color: {theme_color}; margin-bottom: 5px; }}
-    .book-author {{ color: #555; font-size: 14px; }}
-    .book-price {{ font-size: 19px; font-weight: bold; color: #B8860B; margin-top: 8px; }}
-    .edition-badge {{ background-color: #FFF3CD; color: #856404; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }}
+    }
+    .book-title { font-size: 18px; font-weight: bold; color: #0B3C26; margin-bottom: 5px; }
+    .book-author { color: #555; font-size: 14px; }
+    .book-price { font-size: 19px; font-weight: bold; color: #B8860B; margin-top: 8px; }
+    .edition-badge { background-color: #FFF3CD; color: #856404; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
     
-    .slider-container {{
+    .slider-container {
         display: flex; overflow-x: auto; gap: 15px; padding: 15px 5px; scroll-behavior: smooth; margin-bottom: 25px; white-space: nowrap;
-    }}
-    .slider-container::-webkit-scrollbar {{ display: none; }}
-    .slider-card {{
+    }
+    .slider-container::-webkit-scrollbar { display: none; }
+    .slider-card {
         min-width: 180px; max-width: 180px; background: white; border-radius: 10px; border: 1px solid #ddd; padding: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.08); flex-shrink: 0;
-    }}
-    .slider-card img {{ width: 100%; height: 120px; object-fit: cover; border-radius: 6px; }}
-    .slider-card p {{ font-size: 13px; font-weight: bold; color: {theme_color}; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+    }
+    .slider-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; }
+    .slider-card p { font-size: 13px; font-weight: bold; color: #0B3C26; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .whatsapp-float {{
+    .whatsapp-float {
         position: fixed; bottom: 25px; left: 25px; background-color: #25D366; color: #FFF;
         border-radius: 50px; text-align: center; font-size: 30px; box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
         z-index: 999; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; text-decoration: none;
     }
-    .footer-box {{
-        background-color: {theme_color}; color: #FFFFFF; padding: 25px; border-radius: 12px; text-align: center; margin-top: 40px; border-top: 3px solid #FFD700;
+    .footer-box {
+        background-color: #0B3C26; color: #FFFFFF; padding: 25px; border-radius: 12px; text-align: center; margin-top: 40px; border-top: 3px solid #FFD700;
     }
-    .footer-links a {{ color: #FFD700; text-decoration: none; margin: 0 15px; font-weight: bold; font-size: 16px;
+    .footer-links a { color: #FFD700; text-decoration: none; margin: 0 15px; font-weight: bold; font-size: 16px; }
+</style>
+""", unsafe_allow_html=True)
+
+# رأس الصفحة والبانر
+st.markdown("<h1 style='text-align: center; color: #0B3C26;'>📖 الأحرف السـ7ـبعة لعلوم القرآن والقراءات</h1>", unsafe_allow_html=True)
+st.image(st.session_state.site_settings['banner_image'], use_container_width=True)
+
+# =============================================================
+# 🔒 لوحة الإدارة الذكية (تظهر للمدير فقط)
+# =============================================================
+if st.session_state.admin_logged_in:
+    col_top1, col_top2 = st.columns([4, 1])
+    with col_top1:
+        st.markdown("## 🔒 لوحة إدارة المتجر الذكية")
+    with col_top2:
+        if st.button("🚪 تسجيل خروج المدير"):
+            st.session_state.admin_logged_in = False
+            st.rerun()
+
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["🤖 المساعد الذكي الآلي", "📋 طلبات الشراء", "👥 الزوار المسجلين", "📦 المخزون", "⚙️ الإعدادات", "⚠️ البلاغات"])
+
+    with tab1:
+        st.markdown("### 🤖 مساعد الإدارة الذكي (تحدث معه لتعديل المتجر وتنفيذ الطلبات)")
+        st.markdown("اكتب لي أي طلب مثل: *(غيّر لون الموقع إلى الأزرق، غير صورة البانر، كم عدد الطلبات؟)* وسأقوم بتنفيذه ومناقشتك فوراً!")
+        
+        for chat in st.session_state.admin_chat_history:
+            if chat["role"] == "user":
+                st.markdown(f"**👤 أنت:** {chat['content']}")
+            else:
+                st.markdown(f"**🤖 المساعد الذكي:** {chat['content']}")
+        
+        st.markdown("---")
+        with st.form("ai_assistant_form", clear_on_submit=True):
+            user_prompt = st.text_input("اطلب أمرك من المساعد الذكي هنا:")
+            submit_ai = st.form_submit_button("💬 إرسال الطلب للمساعد")
+            
+            if submit_ai and user_prompt:
+                st.session_state.admin_chat_history.append({"role": "user", "content": user_prompt})
+                
+                prompt_lower = user_prompt.lower()
+                response_text = ""
+                
+                if "طلبات" in prompt_lower:
+                    order_count = len(st.session_state.orders)
+                    response_text = f"حسناً يا فندم، لديك حالياً ({order_count}) من طلبات الشراء الواردة في السجل."
+                elif "صورة" in prompt_lower
