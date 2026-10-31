@@ -19,7 +19,7 @@ if 'site_settings' not in st.session_state:
         "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80",
         "admin_name": "المدير العام",
         "admin_password": "1234",
-        "theme_color": "#0B3C26"  # اللون الأساسي للموقع
+        "theme_color": "#0B3C26"
     }
 
 if 'admin_logged_in' not in st.session_state:
@@ -40,7 +40,6 @@ if 'current_customer_name' not in st.session_state:
 if 'customer_wishlists' not in st.session_state:
     st.session_state.customer_wishlists = {} 
 
-# سجل محادثات مساعد الإدارة الذكي
 if 'admin_chat_history' not in st.session_state:
     st.session_state.admin_chat_history = [
         {"role": "assistant", "content": "أهلاً بك يا مديرنا الفاضل في لوحة التحكم الذكية! أنا مساعدك الآلي، اطلب مني أي شيء (تغيير لون الموقع، تعديل صورة البانر، إضافة خصم، أو الاستفسار عن الطلبات) وسأقوم بتنفيذه ومناقشتك فوراً."}
@@ -75,7 +74,7 @@ st.markdown(f"""
         text-align: right !important; 
         background-color: #F8FAF9 !important; 
         font-family: 'Amiri', Tahoma, sans-serif;
-    }
+    }}
     .book-card {{
         background-color: #FFFFFF;
         border: 1px solid #E0E0E0;
@@ -85,7 +84,7 @@ st.markdown(f"""
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         text-align: right;
         word-wrap: break-word;
-    }
+    }}
     .book-title {{ font-size: 18px; font-weight: bold; color: {theme_color}; margin-bottom: 5px; }}
     .book-author {{ color: #555; font-size: 14px; }}
     .book-price {{ font-size: 19px; font-weight: bold; color: #B8860B; margin-top: 8px; }}
@@ -93,11 +92,11 @@ st.markdown(f"""
     
     .slider-container {{
         display: flex; overflow-x: auto; gap: 15px; padding: 15px 5px; scroll-behavior: smooth; margin-bottom: 25px; white-space: nowrap;
-    }
+    }}
     .slider-container::-webkit-scrollbar {{ display: none; }}
     .slider-card {{
         min-width: 180px; max-width: 180px; background: white; border-radius: 10px; border: 1px solid #ddd; padding: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.08); flex-shrink: 0;
-    }
+    }}
     .slider-card img {{ width: 100%; height: 120px; object-fit: cover; border-radius: 6px; }}
     .slider-card p {{ font-size: 13px; font-weight: bold; color: {theme_color}; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
 
@@ -131,12 +130,10 @@ if st.session_state.admin_logged_in:
 
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["🤖 المساعد الذكي الآلي", "📋 طلبات الشراء", "👥 الزوار المسجلين", "📦 المخزون", "⚙️ الإعدادات", "⚠️ البلاغات"])
 
-    # 1. تبويب المساعد الذكي الذي يناقشك وينفذ طلباتك
     with tab1:
         st.markdown("### 🤖 مساعد الإدارة الذكي (تحدث معه لتعديل المتجر وتنفيذ الطلبات)")
         st.markdown("اكتب لي أي طلب مثل: *(غيّر لون الموقع إلى الأزرق، غير صورة البانر، كم عدد الطلبات؟)* وسأقوم بتنفيذه ومناقشتك فوراً!")
         
-        # عرض محادثة المساعد
         for chat in st.session_state.admin_chat_history:
             if chat["role"] == "user":
                 st.markdown(f"**👤 أنت:** {chat['content']}")
@@ -151,13 +148,12 @@ if st.session_state.admin_logged_in:
             if submit_ai and user_prompt:
                 st.session_state.admin_chat_history.append({"role": "user", "content": user_prompt})
                 
-                # تحليل الطلب والتنفيذ الذكي
                 prompt_lower = user_prompt.lower()
                 response_text = ""
                 
                 if "أزرق" in prompt_lower or "لون أزرق" in prompt_lower:
                     st.session_state.site_settings['theme_color'] = "#1E3A8A"
-                    response_text = "تم تنفيذ طلبك! تم تغيير لون الهوية والباقي في المتجر إلى اللون الأزرق الاحترافي. 🎨"
+                    response_text = "تم تنفيذ طلبك! تم تغيير لون الهوية في المتجر إلى اللون الأزرق الاحترافي. 🎨"
                 elif "أخضر" in prompt_lower or "لون أخضر" in prompt_lower:
                     st.session_state.site_settings['theme_color'] = "#0B3C26"
                     response_text = "تم تنفيذ طلبك! تم إعادة لون المتجر إلى الأخضر التراثي المميز. 🌿"
@@ -225,224 +221,4 @@ if st.session_state.admin_logged_in:
 else:
     # شريط صور الكتب المتحرك تلقائياً كل 3 ثوانٍ
     slider_cards_html = ""
-    for idx, book in st.session_state.inventory.iterrows():
-        b_title = book.get('عنوان الكتاب', '')
-        b_img = book.get('صورة_الغلاف', 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80')
-        slider_cards_html += f'''
-        <div class="slider-card">
-            <img src="{b_img}" alt="book">
-            <p>{b_title}</p>
-        </div>
-        '''
-
-    slider_html = f'''
-    <div class="slider-container" id="autoSlider">
-        {slider_cards_html}
-    </div>
-    <script>
-        const slider = document.getElementById('autoSlider');
-        let scrollAmount = 0;
-        function autoScroll() {{
-            if (slider) {{
-                scrollAmount += 200;
-                if (scrollAmount >= slider.scrollWidth - slider.clientWidth) {{
-                    scrollAmount = 0;
-                }}
-                slider.scrollTo({{ left: scrollAmount, behavior: 'smooth' }});
-            }}
-        }}
-        setInterval(autoScroll, 3000);
-    </script>
-    '''
-    st.markdown(slider_html, unsafe_allow_html=True)
-
-    # شريط حالة حساب العميل في الأعلى
-    if st.session_state.customer_logged_in:
-        col_c_info1, col_c_info2 = st.columns([3, 1])
-        with col_c_info1:
-            st.success(f"👤 أهلاً بك يا **{st.session_state.current_customer_name}** (حسابك نشط ومفضلاتك محفوظة ⭐)")
-        with col_c_info2:
-            if st.button("🚪 تسجيل خروج الحساب"):
-                st.session_state.customer_logged_in = False
-                st.session_state.current_customer_phone = ""
-                st.session_state.current_customer_name = ""
-                st.rerun()
-
-    st.subheader("🔍 تصفح جميع العناوين والكتب")
-    
-    col_s1, col_s2 = st.columns([2, 1])
-    with col_s1:
-        search_kw = st.text_input("ابحث عن كتاب أو مؤلف:", "", placeholder="مثال: الشاطبية...")
-    with col_s2:
-        categories = ["الكل"] + list(st.session_state.inventory['التصنيف'].unique())
-        selected_cat = st.selectbox("القسم:", categories)
-
-    df_books = st.session_state.inventory.copy()
-    if search_kw:
-        df_books = df_books[df_books['عنوان الكتاب'].str.contains(search_kw, case=False, na=False) | df_books['المؤلف / المحقق'].str.contains(search_kw, case=False, na=False)]
-    if selected_cat != "الكل":
-        df_books = df_books[df_books['التصنيف'] == selected_cat]
-
-    current_phone = st.session_state.current_customer_phone
-    if current_phone and current_phone not in st.session_state.customer_wishlists:
-        st.session_state.customer_wishlists[current_phone] = []
-
-    user_wishlist = st.session_state.customer_wishlists.get(current_phone, []) if current_phone else []
-
-    cols = st.columns(2)
-    for idx, book in df_books.iterrows():
-        col_idx = idx % 2
-        with cols[col_idx]:
-            title_val = book.get('عنوان الكتاب', '')
-            author_val = book.get('المؤلف / المحقق', '')
-            pub_val = book.get('دار النشر', '')
-            price_val = float(book.get('سعر البيع', 0))
-            barcode_val = book.get('الباركود', '')
-
-            st.markdown(f"""
-            <div class="book-card">
-                <div class="book-title">{title_val}</div>
-                <div class="book-author">المؤلف: <b>{author_val}</b></div>
-                <div style="margin-top: 6px;"><span class="edition-badge">📖 {pub_val}</span></div>
-                <div class="book-price">السعر: {price_val:,.2f} جنيه</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
-            with col_btn1:
-                is_fav = title_val in user_wishlist
-                fav_label = "❤️ مفضلة" if is_fav else "🤍 نجمة"
-                if st.button(fav_label, key=f"fav_{barcode_val}_{idx}"):
-                    if not current_phone:
-                        st.warning("⚠️ يرجى تسجيل حسابك برقم هاتفك بالأسفل أولاً لكي يتم حفظ كتبك المفضلة!")
-                    else:
-                        if is_fav:
-                            st.session_state.customer_wishlists[current_phone].remove(title_val)
-                            st.toast("تم إزالة الكتاب من مفضلتك")
-                        else:
-                            st.session_state.customer_wishlists[current_phone].append(title_val)
-                            st.toast("تمت إضافة الكتاب لمفضلتك الشخصية ⭐")
-                        st.rerun()
-            with col_btn2:
-                avail = int(book.get('الكمية', 0))
-                qty_to_buy = st.number_input("الكمية:", min_value=1, max_value=max(1, avail), value=1, key=f"q_{barcode_val}_{idx}")
-            with col_btn3:
-                st.write(" ")
-                if avail > 0:
-                    if st.button("🛒 إضافة للسلة", key=f"b_{barcode_val}_{idx}"):
-                        st.session_state.customer_cart.append({
-                            "عنوان الكتاب": f"{title_val} ({pub_val})",
-                            "سعر القطعة": price_val,
-                            "الكمية": qty_to_buy,
-                            "الإجمالي": price_val * qty_to_buy
-                        })
-                        st.success(f"تمت إضافة '{title_val}' بنجاح!")
-                else:
-                    st.error("نفدت الكمية")
-
-    if current_phone and user_wishlist:
-        st.markdown("---")
-        st.markdown(f"### ⭐ كتبك المفضلة يا {st.session_state.current_customer_name} (قائمة الأمنيات المحفوظة)")
-        for fav_book in user_wishlist:
-            st.markdown(f"- 📖 **{fav_book}**")
-
-    st.markdown("---")
-    st.markdown("## 🛒 سلة التسوق وإتمام الطلب")
-    if st.session_state.customer_cart:
-        cart_df = pd.DataFrame(st.session_state.customer_cart)
-        st.dataframe(cart_df, use_container_width=True, hide_index=True)
-        
-        books_total = cart_df['الإجمالي'].sum()
-        shipping_cost = float(st.session_state.site_settings['shipping_cost'])
-        grand_total = books_total + shipping_cost
-
-        st.markdown(f"### الإجمالي الكلي: **{grand_total:,.2f} جنيه مصري** (شاملاً الشحن {shipping_cost} ج.م)")
-
-        with st.form("checkout_form"):
-            c_name = st.text_input("الاسم بالكامل:", value=st.session_state.current_customer_name)
-            c_phone = st.text_input("رقم الهاتف / الواتساب:", value=st.session_state.current_customer_phone)
-            c_address = st.text_input("عنوان التوصيل والمدينة:")
-            submit_order = st.form_submit_button("✅ تأكيد الطلب")
-            if submit_order:
-                if c_name and c_phone and c_address:
-                    order_id = len(st.session_state.orders) + 1001
-                    st.session_state.orders.append({
-                        "رقم_الطلب": order_id, "التاريخ": datetime.date.today().strftime("%Y-%m-%d"),
-                        "اسم_العميل": c_name, "الهاتف": c_phone, "العنوان": c_address,
-                        "الإجمالي": grand_total, "حالة_الطلب": "قيد المراجعة"
-                    })
-                    st.session_state.customer_cart = []
-                    st.balloons()
-                    st.success(f"تم استقبال طلبك بنجاح! رقم الطلب: #{order_id}")
-                else:
-                    st.error("يرجى إدخال البيانات كاملة.")
-    else:
-        st.info("سلة التسوق فارغة حالياً.")
-
-    st.markdown("---")
-    st.markdown("### 👤 حساب العميل أو تسجيل الدخول")
-    st.markdown("<p style='font-size:14px; color:#555;'>سجل باسمك ورقم واتسابك لحفظ مفضلاتك وعروض الكتب، وعند عودتك في أي وقت ادخل بنفس البيانات لتجد كل ما أحببته محفوظاً!</p>", unsafe_allow_html=True)
-    
-    with st.form("customer_login_form"):
-        col_v1, col_v2 = st.columns(2)
-        with col_v1:
-            v_name = st.text_input("الاسم الكريم:")
-        with col_v2:
-            v_phone = st.text_input("رقم الواتساب (هو كلمة مرور حسابك):")
-        
-        submitted = st.form_submit_button("🔑 دخول أو تسجيل الحساب")
-        if submitted:
-            if v_name.strip() == st.session_state.site_settings['admin_name'] and v_phone.strip() == st.session_state.site_settings['admin_password']:
-                st.session_state.admin_logged_in = True
-                st.success("مرحباً بك يا مدير الموقع!")
-                st.rerun()
-            elif v_name and v_phone:
-                st.session_state.customer_logged_in = True
-                st.session_state.current_customer_name = v_name
-                st.session_state.current_customer_phone = v_phone
-                
-                existing_phones = [s['الهاتف'] for s in st.session_state.subscribers]
-                if v_phone not in existing_phones:
-                    st.session_state.subscribers.append({
-                        "التاريخ": datetime.date.today().strftime("%Y-%m-%d"), 
-                        "الاسم": v_name, 
-                        "الهاتف": v_phone
-                    })
-                
-                st.success(f"أهلاً بك يا {v_name}! تم تفعيل حسابك واسترجاع مفضلاتك بنجاح.")
-                st.rerun()
-            else:
-                st.error("يرجى إدخال الاسم ورقم الهاتف.")
-
-    st.markdown("---")
-    with st.expander("🛠️ واجهتك مشكلة أو عطل بالموقع؟ أبلغنا هنا"):
-        with st.form("report_form"):
-            r_name = st.text_input("اسمك الكريم:")
-            r_msg = st.text_area("صف لنا المشكلة:")
-            submit_report = st.form_submit_button("إرسال الإبلاغ")
-            if submit_report:
-                if r_name and r_msg:
-                    st.session_state.reports.append({"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": r_name, "المشكلة": r_msg})
-                    st.success("تم إرسال ملاحظتك بنجاح!")
-                else:
-                    st.error("يرجى ملء الحقول.")
-
-    wa_num = st.session_state.site_settings['whatsapp_number']
-    st.markdown(f"""
-    <a href="https://wa.me/{wa_num}?text=السلام%20عليكم،%20أريد%20الاستفسار%20عن%20كتب%20القراءات" class="whatsapp-float" target="_blank" title="تواصل معنا">
-        💬
-    </a>
-    """, unsafe_allow_html=True)
-
-    fb_url = st.session_state.site_settings['facebook_url'] if 'site_settings' in st.session_state else "https://facebook.com"
-    st.markdown(f"""
-    <div class="footer-box">
-        <h3>منصة الأحرف السـ7ـبعة لعلوم القرآن والقراءات</h3>
-        <p>نسعى لتقديم أثمن الكتب والمتون العلمية لعلوم القرآن والقراءات بخدمة دقيقة ومميزة</p>
-        <div class="footer-links" style="margin-top: 15px;">
-            <a href="https://wa.me/{wa_num}" target="_blank">💬 واتساب</a>
-            <a href="{fb_url}" target="_blank">📘 فيسبوك</a>
-        </div>
-        <p style="margin-top: 15px; font-size: 13px; color: #ccc;">جميع الحقوق محفوظة © 2026 الأحرف السـ7ـبعة</p>
-    </div>
-    """, unsafe_allow_html=True)
+    for idx, book
