@@ -53,7 +53,7 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-# 4. تنسيقات التصميم الفخمة
+# 4. تنسيقات التصميم (باستخدام صورتك الفخمة المطلوبة للخلفية)
 st.markdown("""
 <style>
     .stApp { 
@@ -68,12 +68,13 @@ st.markdown("""
         overflow-wrap: break-word !important;
     }
 
+    /* البانر الخلفي بالصورة الفخمة التي أرسلتها */
     .hero-banner {
         background: linear-gradient(rgba(11, 60, 38, 0.75), rgba(31, 94, 59, 0.75)), 
                     url('https://images.unsplash.com/photo-1590073844006-33379778ae09?auto=format&fit=crop&w=1200&q=80');
         background-size: cover;
         background-position: center;
-        padding: 50px 20px;
+        padding: 55px 20px;
         border-radius: 16px;
         color: #FFD700;
         text-align: center;
@@ -81,7 +82,7 @@ st.markdown("""
         border: 2px solid #FFD700;
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
-    .hero-title { font-size: 42px; font-weight: 900; margin-bottom: 8px; text-shadow: 2px 2px 8px rgba(0,0,0,0.7); color: #FFD700; }
+    .hero-title { font-size: 42px; font-weight: 900; margin-bottom: 8px; text-shadow: 2px 2px 8px rgba(0,0,0,0.7); color: #FFD700; letter-spacing: 1px; }
     .hero-sub { font-size: 18px; color: #FFFFFF; font-weight: bold; text-shadow: 1px 1px 5px rgba(0,0,0,0.7); }
 
     .book-card {
@@ -154,7 +155,7 @@ if st.session_state.admin_logged_in:
 else:
     mode = "🛍️ المتجر الإلكتروني (للعملاء والزوار)"
 
-# البانر الرئيسي (مربوط بالإعدادات الديناميكية)
+# البانر الرئيسي
 st.markdown(f"""
 <div class="hero-banner">
     <div class="hero-title">{st.session_state.site_settings['hero_title']}</div>
@@ -163,7 +164,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # =============================================================
-# 🛍️ واجهة المتجر (الظاهرة للعملاء)
+# 🛍️ واجهة المتجر (للعملاء)
 # =============================================================
 if mode == "🛍️ المتجر الإلكتروني (للعملاء والزوار)" or not st.session_state.admin_logged_in:
     st.subheader("🔍 تصفح الكتب والمتون")
@@ -266,7 +267,7 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
                 else:
                     st.error("يرجى كتابة الاسم ووصف المشكلة.")
 
-    # --- زر الواتساب العائم الديناميكي ---
+    # --- زر الواتساب العائم ---
     wa_num = st.session_state.site_settings['whatsapp_number']
     st.markdown(f"""
     <a href="https://wa.me/{wa_num}?text=السلام%20عليكم،%20أريد%20الاستفسار%20عن%20كتب%20القراءات" class="whatsapp-float" target="_blank" title="تواصل معنا عبر الواتساب">
@@ -274,15 +275,15 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
     </a>
     """, unsafe_allow_html=True)
 
-    # --- تذييل الصفحة الديناميكي ---
+    # --- تذييل الصفحة (Footer) مع النص المطلوب لعلوم القرآن والقراءات ---
     fb_url = st.session_state.site_settings['facebook_url']
     wa_label = st.session_state.site_settings['btn_whatsapp_label']
     fb_label = st.session_state.site_settings['btn_facebook_label']
     
     st.markdown(f"""
     <div class="footer-box">
-        <h3>منصة الأحرف السـ7ـبعة لعلوم القرآن</h3>
-        <p>نسعى لتقديم أثمن الكتب والمتون العلمية بخدمة دقيقة ومميزة</p>
+        <h3>منصة الأحرف السـ7ـبعة لعلوم القرآن والقراءات</h3>
+        <p>نسعى لتقديم أثمن الكتب والمتون العلمية لعلوم القرآن والقراءات بخدمة دقيقة ومميزة</p>
         <div class="footer-links" style="margin-top: 15px;">
             <a href="https://wa.me/{wa_num}" target="_blank">{wa_label}</a>
             <a href="{fb_url}" target="_blank">{fb_label}</a>
@@ -292,7 +293,7 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
     """, unsafe_allow_html=True)
 
 # =============================================================
-# 🔒 واجهة لوحة الإدارة (تتضمن قسم الإعدادات)
+# 🔒 واجهة لوحة الإدارة (مع إعدادات التحكم الكاملة)
 # =============================================================
 else:
     st.subheader("🔒 لوحة إدارة المتجر والمخزون")
