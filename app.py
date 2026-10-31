@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 
-# 1. إعدادات الصفحة (بدون شريط جانبي نهائياً لمنع أي تقطيع)
+# 1. إعدادات الصفحة (بدون شريط جانبي نهائياً)
 st.set_page_config(
     page_title="الأحرف السـ7ـبعة | لعلوم القرآن والقراءات",
     page_icon="📖",
@@ -25,10 +25,20 @@ if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
 
 if 'subscribers' not in st.session_state:
-    st.session_state.subscribers = []
+    st.session_state.subscribers = []  # قائمة العملاء المسجلين
 
-if 'wishlist' not in st.session_state:
-    st.session_state.wishlist = []  # قائمة المفضلة (الكتب المعلمة بنجمة)
+if 'customer_logged_in' not in st.session_state:
+    st.session_state.customer_logged_in = False
+
+if 'current_customer_phone' not in st.session_state:
+    st.session_state.current_customer_phone = ""
+
+if 'current_customer_name' not in st.session_state:
+    st.session_state.current_customer_name = ""
+
+# تخزين مفضلة كل عميل برقم هاتفه كمعرّف فريد
+if 'customer_wishlists' not in st.session_state:
+    st.session_state.customer_wishlists = {} 
 
 if 'inventory' not in st.session_state:
     st.session_state.inventory = pd.DataFrame([
@@ -49,7 +59,7 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-# 3. تنسيقات التصميم النظيفة (إخفاء الشريط الجانبي بالكامل عبر CSS)
+# 3. تنسيقات التصميم النظيفة
 st.markdown("""
 <style>
     [data-testid="stSidebar"] { display: none; }
@@ -151,9 +161,21 @@ if st.session_state.admin_logged_in:
             st.info("لا توجد بلاغات.")
 
 # =============================================================
-# 🛍️ واجهة المتجر الطبيعية (للعملاء والزوار - تصفح حر ومستمر)
+# 🛍️ واجهة المتجر الطبيعية (للعملاء والزوار)
 # =============================================================
 else:
+    # شريط حالة حساب العميل في الأعلى
+    if st.session_state.customer_logged_in:
+        col_c_info1, col_c_info2 = st.columns([3, 1])
+        with col_c_info1:
+            st.success(f"👤 أهلاً بك يا **{st.session_state.current_customer_name}** (حسابك نشط ومفضلاتك محفوظة ⭐)")
+        with col_c_info2:
+            if st.button("🚪 تسجيل خروج الحساب"):
+                st.session_state.customer_logged_in = False
+                st.session_state.current_customer_phone = ""
+                st.session_state.current_customer_name = ""
+                st.rerun()
+
     st.subheader("🔍 تصفح جميع العناوين والكتب")
     
     col_s1, col_s2 = st.columns([2, 1])
@@ -169,7 +191,14 @@ else:
     if selected_cat != "الكل":
         df_books = df_books[df_books['التصنيف'] == selected_cat]
 
-    # عرض الكتب بشبكة سلسة (عمودين مع التمرير الحر)
+    # جلب مفضلة العميل الحالي إذا كان مسجلاً
+    current_phone = st.session_state.current_customer_phone
+    if current_phone and current_phone not in st.session_state.customer_wishlists:
+        st.session_state.customer_wishlists[current_phone] = []
+
+    user_wishlist = st.session_state.customer_wishlists.get(current_phone, []) if current_phone else []
+
+    # عرض الكتب بشبكة سلسة
     cols = st.columns(2)
     for idx, book in df_books.iterrows():
         col_idx = idx % 2
@@ -189,19 +218,22 @@ else:
             </div>
             """, unsafe_allow_html=True)
             
-            # أزرار الإضافة للمفضلة (⭐ نجمة) والسلة
+            # أزرار المفضلة والسلة
             col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
             with col_btn1:
-                is_fav = title_val in st.session_state.wishlist
+                is_fav = title_val in user_wishlist
                 fav_label = "❤️ مفضلة" if is_fav else "🤍 نجمة"
                 if st.button(fav_label, key=f"fav_{barcode_val}_{idx}"):
-                    if is_fav:
-                        st.session_state.wishlist.remove(title_val)
-                        st.toast("تم إزالة الكتاب من المفضلة")
+                    if not current_phone:
+                        st.warning("⚠️ يرجى تسجيل حسابك برقم هاتفك بالأسفل أولاً لكي يتم حفظ كتبك المفضلة!")
                     else:
-                        st.session_state.wishlist.append(title_val)
-                        st.toast("تمت إضافة الكتاب لمفضلتك ⭐")
-                    st.rerun()
+                        if is_fav:
+                            st.session_state.customer_wishlists[current_phone].remove(title_val)
+                            st.toast("تم إزالة الكتاب من مفضلتك")
+                        else:
+                            st.session_state.customer_wishlists[current_phone].append(title_val)
+                            st.toast("تمت إضافة الكتاب لمفضلتك الشخصية ⭐")
+                        st.rerun()
             with col_btn2:
                 avail = int(book.get('الكمية', 0))
                 qty_to_buy = st.number_input("الكمية:", min_value=1, max_value=max(1, avail), value=1, key=f"q_{barcode_val}_{idx}")
@@ -219,11 +251,11 @@ else:
                 else:
                     st.error("نفدت الكمية")
 
-    # عرض قائمة المفضلة (الأمنيات) للزائر
-    if st.session_state.wishlist:
+    # عرض قائمة المفضلة الخاصة بالعميل المسجل حالياً
+    if current_phone and user_wishlist:
         st.markdown("---")
-        st.markdown("### ⭐ كتبك المفضلة التي اخترتها (قائمة الأمنيات)")
-        for fav_book in st.session_state.wishlist:
+        st.markdown(f"### ⭐ كتبك المفضلة يا {st.session_state.current_customer_name} (قائمة الأمنيات المحفوظة)")
+        for fav_book in user_wishlist:
             st.markdown(f"- 📖 **{fav_book}**")
 
     # سلة التسوق
@@ -240,8 +272,8 @@ else:
         st.markdown(f"### الإجمالي الكلي: **{grand_total:,.2f} جنيه مصري** (شاملاً الشحن {shipping_cost} ج.م)")
 
         with st.form("checkout_form"):
-            c_name = st.text_input("الاسم بالكامل:")
-            c_phone = st.text_input("رقم الهاتف / الواتساب:")
+            c_name = st.text_input("الاسم بالكامل:", value=st.session_state.current_customer_name)
+            c_phone = st.text_input("رقم الهاتف / الواتساب:", value=st.session_state.current_customer_phone)
             c_address = st.text_input("عنوان التوصيل والمدينة:")
             submit_order = st.form_submit_button("✅ تأكيد الطلب")
             if submit_order:
@@ -260,36 +292,50 @@ else:
     else:
         st.info("سلة التسوق فارغة حالياً.")
 
-    # نظام تسجيل الزوار (اختياري) + دخول المدير من نفس الخانة بالأسفل
+    # نظام حساب الزائر / العميل (دخول برقم الهاتف والاسم + دخول المدير)
     st.markdown("---")
-    st.markdown("### 🔔 انضم لقائمة المهتمين بالعروض")
-    st.markdown("<p style='font-size:14px; color:#555;'>سجل هاتفك ليصلك كل جديد وعروض الكتب على الواتساب (اختياري)</p>", unsafe_allow_html=True)
+    st.markdown("### 👤 حساب العميل أو تسجيل الدخول")
+    st.markdown("<p style='font-size:14px; color:#555;'>سجل باسمك ورقم واتسابك لحفظ مفضلاتك وعروض الكتب، وعند عودتك في أي وقت ادخل بنفس البيانات لتجد كل ما أحببته محفوظاً!</p>", unsafe_allow_html=True)
     
-    with st.form("visitor_reg_form"):
+    with st.form("customer_login_form"):
         col_v1, col_v2 = st.columns(2)
         with col_v1:
             v_name = st.text_input("الاسم الكريم:")
         with col_v2:
-            v_phone = st.text_input("رقم الواتساب:")
+            v_phone = st.text_input("رقم الواتساب (هو كلمة مرور حسابك):")
         
-        submitted = st.form_submit_button("📩 تسجيل المتابعة")
+        submitted = st.form_submit_button("🔑 دخول أو تسجيل الحساب")
         if submitted:
-            # التحقق هل هو المدير يكتب بيانات دخوله؟
+            # 1. التحقق هل هو المدير؟
             if v_name.strip() == st.session_state.site_settings['admin_name'] and v_phone.strip() == st.session_state.site_settings['admin_password']:
                 st.session_state.admin_logged_in = True
                 st.success("مرحباً بك يا مدير الموقع!")
                 st.rerun()
+            # 2. التحقق هل هو عميل يسجل/يدخل بحسابه؟
             elif v_name and v_phone:
-                st.session_state.subscribers.append({"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": v_name, "الهاتف": v_phone})
-                st.success("تم تسجيلك بنجاح لتلقي العروض!")
+                st.session_state.customer_logged_in = True
+                st.session_state.current_customer_name = v_name
+                st.session_state.current_customer_phone = v_phone
+                
+                # إضافته لقائمة المشتركين إذا لم يكن موجوداً من قبل
+                existing_phones = [s['الهاتف'] for s in st.session_state.subscribers]
+                if v_phone not in existing_phones:
+                    st.session_state.subscribers.append({
+                        "التاريخ": datetime.date.today().strftime("%Y-%m-%d"), 
+                        "الاسم": v_name, 
+                        "الهاتف": v_phone
+                    })
+                
+                st.success(f"أهلاً بك يا {v_name}! تم تفعيل حسابك واسترجاع مفضلاتك بنجاح.")
+                st.rerun()
             else:
-                st.error("يرجى إدخال البيانات المطلوبة.")
+                st.error("يرجى إدخال الاسم ورقم الهاتف.")
 
     # بلاغات الأعطال
     st.markdown("---")
     with st.expander("🛠️ واجهتك مشكلة أو عطل بالموقع؟ أبلغنا هنا"):
         with st.form("report_form"):
-            r_name = st.text_input("اسم الكريم:")
+            r_name = st.text_input("اسمك الكريم:")
             r_msg = st.text_area("صف لنا المشكلة:")
             submit_report = st.form_submit_button("إرسال الإبلاغ")
             if submit_report:
