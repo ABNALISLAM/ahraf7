@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. تهيئة إعدادات الموقع والبيانات الأساسية (الرقم السري 1234)
+# 2. تهيئة إعدادات الموقع والبيانات الأساسية
 if 'site_settings' not in st.session_state:
     st.session_state.site_settings = {
         "whatsapp_number": "201033393575",
@@ -19,13 +19,6 @@ if 'site_settings' not in st.session_state:
         "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80",
         "admin_password": "1234"
     }
-
-# التحقق من الرابط برقم 1234
-query_params = st.query_params
-is_admin_via_url = query_params.get("admin") == "1234"
-
-if is_admin_via_url:
-    st.session_state.admin_logged_in = True
 
 if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
@@ -49,7 +42,7 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-# 4. تنسيقات التصميم المحسنة لمنع أي تقطيع أو تداخل
+# 3. تنسيقات التصميم
 st.markdown("""
 <style>
     .stApp { 
@@ -84,15 +77,27 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# القائمة الجانبية للزوار
+# 4. القائمة الجانبية (منطقة الدخول السرية الخاصة بك)
 st.sidebar.title("📖 الأحرف السـ7ـبعة")
 st.sidebar.markdown("لعلوم القرآن والقراءات الكريمة")
 
-if st.session_state.admin_logged_in:
-    st.sidebar.success("تم تسجيل الدخول كمدير بنجاح")
+st.sidebar.markdown("---")
+
+# إذا لم يكن مسجلاً للدخول، نعرض له "منطقة مخفية" بأسفل القائمة الجانبية لا يلتفت لها الزوار
+if not st.session_state.admin_logged_in:
+    with st.sidebar.expander("⚙️ إعدادات المتجر (خاص بالمدير)"):
+        pass_input = st.text_input("أدخل الرقم السري:", type="password", key="sidebar_pass")
+        if st.button("دخول لوحة التحكم"):
+            if pass_input == st.session_state.site_settings['admin_password']:
+                st.session_state.admin_logged_in = True
+                st.success("تم الدخول بنجاح!")
+                st.rerun()
+            else:
+                st.error("الرقم السري غير صحيح!")
+else:
+    st.sidebar.success("✅ أنت مسجل كمدير")
     if st.sidebar.button("🚪 تسجيل خروج"):
         st.session_state.admin_logged_in = False
-        st.query_params.clear()
         st.rerun()
 
 # عرض البانر في الواجهة
@@ -240,23 +245,23 @@ else:
             r_name = st.text_input("اسمك الكريم:")
             r_msg = st.text_area("صف لنا المشكلة:")
             submit_report = st.form_submit_button("إرسال الإبلاغ")
-            if submit_report:خص
-            if r_name and r_msg:
-                st.session_state.reports.append({"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": r_name, "المشكلة": r_msg})
-                st.success("تم إرسال ملاحظتك بنجاح!")
-            else:
-                st.error("يرجى ملء الحقول.")
+            if submit_report:
+                if r_name and r_msg:
+                    st.session_state.reports.append({"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": r_name, "المشكلة": r_msg})
+                    st.success("تم إرسال ملاحظتك بنجاح!")
+                else:
+                    st.error("يرجى ملء الحقول.")
 
     # زر الواتساب العائم
     wa_num = st.session_state.site_settings['whatsapp_number']
     st.markdown(f"""
-    <a href="https://wa.me/{wa_num}?text=السلام%20عليكم،%20أريد%20الاستفسار%20عن%20كتب%20القراءات" class="whatsapp-float" target="_blank" title="تواصل معنا">
+    <a href="https://wa.me/{wa_num}?text=السلام%20عليكم،%20أريد%20الاستفسار%2520عن%20كتب%20القراءات" class="whatsapp-float" target="_blank" title="تواصل معنا">
         💬
     </a>
     """, unsafe_allow_html=True)
 
     # التذييل (Footer)
-    fb_url = st.session_state.site_settings['facebook_url']
+    fb_url = st.section_state.site_settings['facebook_url'] if 'site_settings' in st.session_state else "https://facebook.com"
     st.markdown(f"""
     <div class="footer-box">
         <h3>منصة الأحرف السـ7ـبعة لعلوم القرآن والقراءات</h3>
