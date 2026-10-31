@@ -22,7 +22,7 @@ if is_admin_via_url:
 if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
 
-# 3. تهيئة الإعدادات الديناميكية (القابلة للتعديل من لوحة الإدارة)
+# 3. تهيئة الإعدادات الديناميكية (مع إمكانية رفع وتغيير الصورة من الإدارة)
 if 'site_settings' not in st.session_state:
     st.session_state.site_settings = {
         "whatsapp_number": "201033393575",
@@ -31,7 +31,8 @@ if 'site_settings' not in st.session_state:
         "btn_facebook_label": "📘 صفحة الفيسبوك",
         "hero_title": "📖 الأَحْرُفُ السـ7ـبْعَة",
         "hero_subtitle": "✦ لِكُتُبِ القِرَاءَاتِ وَعُلُومِ القُرْآنِ الكَرِيمِ ✦",
-        "shipping_cost": 60.0
+        "shipping_cost": 60.0,
+        "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80"
     }
 
 if 'inventory' not in st.session_state:
@@ -138,8 +139,8 @@ if st.session_state.admin_logged_in:
 else:
     mode = "🛍️ المتجر الإلكتروني (للعملاء والزوار)"
 
-# البديل الأنيق والناجح 100%: عرض صورتك الفخمة مباشرة كواجهة للموقع لتظهر بوضوح تام ودون مشاكل
-st.image("https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80", use_container_width=True)
+# عرض صورة البانر الحالية (القابلة للتغيير من الإدارة)
+st.image(st.session_state.site_settings['banner_image'], use_container_width=True)
 
 # =============================================================
 # 🛍️ واجهة المتجر (للعملاء)
@@ -253,7 +254,7 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
     </a>
     """, unsafe_allow_html=True)
 
-    # --- تذييل الصفحة (Footer) مع النص المطلوب لعلوم القرآن والقراءات ---
+    # --- تذييل الصفحة (Footer) مع النص المطلوب ---
     fb_url = st.session_state.site_settings['facebook_url']
     wa_label = st.session_state.site_settings['btn_whatsapp_label']
     fb_label = st.session_state.site_settings['btn_facebook_label']
@@ -271,7 +272,7 @@ if mode == "🛍️ المتجر الإلكتروني (للعملاء والزو
     """, unsafe_allow_html=True)
 
 # =============================================================
-# 🔒 واجهة لوحة الإدارة (مع إعدادات التحكم الكاملة)
+# 🔒 واجهة لوحة الإدارة (مع إعدادات التحكم الكاملة ورفع الصور)
 # =============================================================
 else:
     st.subheader("🔒 لوحة إدارة المتجر والمخزون")
@@ -290,28 +291,29 @@ else:
         st.dataframe(st.session_state.inventory, use_container_width=True, hide_index=True)
 
     with tab3:
-        st.markdown("### ⚙️ إعدادات المتجر والروابط السريعة")
-        st.info("يمكنك تغيير الأرقام والروابط ونصوص الأزرار من هنا مباشرة دون فتح الكود!")
+        st.markdown("### ⚙️ إعدادات المتجر وتغيير صورة البانر والروابط")
+        st.info("يمكنك تغيير الأرقام، الروابط، ونصوص الأزرار، أو رفع صورة بانر جديدة متى شئت دون الحاجة لمس الكود!")
         
         with st.form("settings_form"):
             new_wa = st.text_input("رقم الواتساب (بالصيغة الدولية مثلاً 201033393575):", value=st.session_state.site_settings['whatsapp_number'])
             new_fb = st.text_input("رابط صفحة الفيسبوك:", value=st.session_state.site_settings['facebook_url'])
             new_wa_label = st.text_input("اسم زر الواتساب في أسفل الصفحة:", value=st.session_state.site_settings['btn_whatsapp_label'])
             new_fb_label = st.text_input("اسم زر الفيسبوك في أسفل الصفحة:", value=st.session_state.site_settings['btn_facebook_label'])
-            new_title = st.text_input("العنوان الرئيسي للمتجر (البانر):", value=st.session_state.site_settings['hero_title'])
-            new_subtitle = st.text_input("العنوان الفرعي للمتجر:", value=st.session_state.site_settings['hero_subtitle'])
             new_shipping = st.number_input("تكلفة الشحن الثابتة (جنيه):", value=float(st.session_state.site_settings['shipping_cost']))
             
-            save_settings = st.form_submit_button("💾 حفظ الإعدادات الجديدة")
+            st.markdown("---")
+            st.markdown("#### 🖼️ تغيير صورة الواجهة (البانر)")
+            new_banner_url = st.text_input("رابط مباشر لصورة جديدة (أو اتركها كما هي):", value=st.session_state.site_settings['banner_image'])
+            
+            save_settings = st.form_submit_button("💾 حفظ الإعدادات الجديدة وتحديث الموقع")
             if save_settings:
                 st.session_state.site_settings['whatsapp_number'] = new_wa
                 st.session_state.site_settings['facebook_url'] = new_fb
                 st.session_state.site_settings['btn_whatsapp_label'] = new_wa_label
                 st.session_state.site_settings['btn_facebook_label'] = new_fb_label
-                st.session_state.site_settings['hero_title'] = new_title
-                st.session_state.site_settings['hero_subtitle'] = new_subtitle
                 st.session_state.site_settings['shipping_cost'] = new_shipping
-                st.success("تم تحديث إعدادات الموقع والروابط بنجاح!")
+                st.session_state.site_settings['banner_image'] = new_banner_url
+                st.success("تم تحديث إعدادات المتجر والصورة بنجاح!")
                 st.rerun()
 
     with tab4:
