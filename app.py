@@ -197,7 +197,7 @@ else:
                 if st.button(fav_label, key=f"fav_{barcode_val}_{idx}"):
                     if is_fav:
                         st.session_state.wishlist.remove(title_val)
-                        st.toast(جتم إزالة الكتاب من المفضلة")
+                        st.toast("تم إزالة الكتاب من المفضلة")
                     else:
                         st.session_state.wishlist.append(title_val)
                         st.toast("تمت إضافة الكتاب لمفضلتك ⭐")
