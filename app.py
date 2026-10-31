@@ -53,7 +53,7 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-# 4. تنسيقات التصميم (باستخدام صورتك الفخمة المطلوبة للخلفية)
+# 4. تنسيقات التصميم مع الصورة الجديدة التي أرسلتها تماماً
 st.markdown("""
 <style>
     .stApp { 
@@ -68,10 +68,10 @@ st.markdown("""
         overflow-wrap: break-word !important;
     }
 
-    /* البانر الخلفي بالصورة الفخمة التي أرسلتها */
+    /* البانر الخلفي بالصورة الفخمة المطلوبة والمطابقة لصورتك */
     .hero-banner {
-        background: linear-gradient(rgba(11, 60, 38, 0.75), rgba(31, 94, 59, 0.75)), 
-                    url('https://images.unsplash.com/photo-1590073844006-33379778ae09?auto=format&fit=crop&w=1200&q=80');
+        background: linear-gradient(rgba(11, 60, 38, 0.65), rgba(31, 94, 59, 0.65)), 
+                    url('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80');
         background-size: cover;
         background-position: center;
         padding: 55px 20px;
@@ -144,6 +144,9 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+# عرض الصورة الإسلامية مباشرة عبر Streamlit لضمان ظهورها بالموقع بدقة 100%
+st.image("https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80", use_container_width=True)
 
 if st.session_state.admin_logged_in:
     st.sidebar.title("🔒 لوحة الإدارة")
