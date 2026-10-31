@@ -10,16 +10,26 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. تهيئة الإعدادات الديناميكية للموقع
+# 2. تهيئة إعدادات الموقع والبيانات الأساسية (بما فيها الرقم السري)
 if 'site_settings' not in st.session_state:
     st.session_state.site_settings = {
         "whatsapp_number": "201033393575",
         "facebook_url": "https://facebook.com",
-        "btn_whatsapp_label": "💬 تواصل عبر الواتساب",
-        "btn_facebook_label": "📘 صفحة الفيسبوك",
         "shipping_cost": 60.0,
-        "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80"
+        "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80",
+        "admin_password": "1181A@"  # الرقم السري الافتراضي القابل للتغيير
     }
+
+# 3. فحص الرابط للتحقق من المدير باستخدام الرقم السري المخزن حالياً
+query_params = st.query_params
+current_pass = st.session_state.site_settings['admin_password']
+is_admin_via_url = query_params.get("admin") == current_pass
+
+if is_admin_via_url:
+    st.session_state.admin_logged_in = True
+
+if 'admin_logged_in' not in st.session_state:
+    st.session_state.admin_logged_in = False
 
 if 'inventory' not in st.session_state:
     st.session_state.inventory = pd.DataFrame([
@@ -40,10 +50,7 @@ if 'orders' not in st.session_state:
 if 'reports' not in st.session_state:
     st.session_state.reports = []
 
-if 'admin_logged_in' not in st.session_state:
-    st.session_state.admin_logged_in = False
-
-# 3. تنسيقات التصميم
+# 4. تنسيقات التصميم
 st.markdown("""
 <style>
     .stApp { 
@@ -77,30 +84,22 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 4. القائمة الجانبية (زر الدخول المباشر للمدير)
-st.sidebar.title("⚙️ القائمة الرئيسية")
-
-# زر مباشر يفتح لك خانة الرقم السري في القائمة الجانبية
-with st.sidebar.expander("🔒 دخول المدير (لوحة التحكم)", expanded=True):
-    password_input = st.text_input("أدخل الرقم السري:", type="password", key="admin_pass")
-    if st.button("دخول كمدير"):
-        if password_input == "1181A@":
-            st.session_state.admin_logged_in = True
-            st.success("تم الدخول بنجاح!")
-            st.rerun()
-        else:
-            st.error("الرقم السري غير صحيح!")
+# القائمة الجانبية نظيفة وخالية من أي شيء للزوار
+st.sidebar.title("📖 الأحرف السـ7ـبعة")
+st.sidebar.markdown("لعلوم القرآن والقراءات الكريمة")
 
 if st.session_state.admin_logged_in:
+    st.sidebar.success("تم تسجيل الدخول كمدير بنجاح")
     if st.sidebar.button("🚪 تسجيل خروج"):
         st.session_state.admin_logged_in = False
+        st.query_params.clear()
         st.rerun()
 
 # عرض البانر في الواجهة
 st.image(st.session_state.site_settings['banner_image'], use_container_width=True)
 
 # =============================================================
-# 🔒 واجهة لوحة الإدارة (تظهر فوراً بمجرد إدخال الرقم السري)
+# 🔒 واجهة لوحة الإدارة (تظهر فقط عند الدخول بالرابط السري)
 # =============================================================
 if st.session_state.admin_logged_in:
     st.markdown("## 🔒 لوحة إدارة المتجر والإعدادات")
@@ -118,19 +117,24 @@ if st.session_state.admin_logged_in:
         st.dataframe(st.session_state.inventory, use_container_width=True, hide_index=True)
 
     with tab3:
-        st.markdown("### ⚙️ إعدادات المتجر والروابط")
+        st.markdown("### ⚙️ إعدادات المتجر والروابط والرقم السري")
         with st.form("settings_form"):
             new_wa = st.text_input("رقم الواتساب:", value=st.session_state.site_settings['whatsapp_number'])
             new_fb = st.text_input("رابط صفحة الفيسبوك:", value=st.session_state.site_settings['facebook_url'])
             new_shipping = st.number_input("تكلفة الشحن الثابتة:", value=float(st.session_state.site_settings['shipping_cost']))
             new_banner = st.text_input("رابط صورة البانر:", value=st.session_state.site_settings['banner_image'])
             
-            if st.form_submit_button("💾 حفظ التعديلات"):
+            st.markdown("---")
+            st.markdown("#### 🔐 تغيير الرقم السري للدخول للوحة الإدارة")
+            new_pass_input = st.text_input("الرقم السري الجديد:", value=st.session_state.site_settings['admin_password'], type="password")
+            
+            if st.form_submit_button("💾 حفظ التعديلات الرقم السري والإعدادات"):
                 st.session_state.site_settings['whatsapp_number'] = new_wa
                 st.session_state.site_settings['facebook_url'] = new_fb
                 st.session_state.site_settings['shipping_cost'] = new_shipping
                 st.session_state.site_settings['banner_image'] = new_banner
-                st.success("تم تحديث إعدادات الموقع بنجاح!")
+                st.session_state.site_settings['admin_password'] = new_pass_input
+                st.success("تم تحديث الإعدادات والرقم السري بنجاح! (استخدم الرقم الجديد في رابط الدخول القادم)")
                 st.rerun()
 
     with tab4:
