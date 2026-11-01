@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import datetime
+import os
 
 # 1. إعدادات الصفحة
 st.set_page_config(
@@ -10,7 +11,11 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. تهيئة البيانات الأساسية وإعدادات الموقع الشاملة
+# 2. إنشاء مجلد لحفظ الصور المرفوعة محلياً إذا لم يكن موجوداً
+if not os.path.exists("uploaded_images"):
+    os.makedirs("uploaded_images")
+
+# تهيئة البيانات الأساسية وإعدادات الموقع الشاملة
 if 'site_settings' not in st.session_state:
     st.session_state.site_settings = {
         "site_title": "📖 الأحرف السـ7ـبعة لعلوم القرآن والقراءات",
@@ -47,7 +52,7 @@ if 'admin_chat_history' not in st.session_state:
         {"role": "assistant", "content": "أهلاً بك يا مديرنا الفاضل في لوحة التحكم المطلقة! يمكنك التحكم في كل تفاصيل الموقع من هنا."}
     ]
 
-# جدول المخزون القابل للإضافة والحذف وتعديل الأعمده بالكامل من الموقع
+# جدول المخزون الأساسي
 if 'inventory' not in st.session_state:
     st.session_state.inventory = pd.DataFrame([
         {
@@ -128,12 +133,12 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# عنوان الموقع الرئيسي والبانر (يتحكم فيها المدير بالكامل)
+# عنوان الموقع الرئيسي والبانر
 st.markdown(f"<h1 style='text-align: center; color: {theme_col};'>{st.session_state.site_settings['site_title']}</h1>", unsafe_allow_html=True)
 st.image(st.session_state.site_settings['banner_image'], use_container_width=True)
 
 # =============================================================
-# 🔒 لوحة الإدارة الشاملة (تظهر للمدير فقط عند تسجيل الدخول)
+# 🔒 لوحة الإدارة الشاملة (تظهر للمدير فقط)
 # =============================================================
 if st.session_state.admin_logged_in:
     col_t1, col_t2 = st.columns([4, 1])
@@ -145,18 +150,16 @@ if st.session_state.admin_logged_in:
             st.rerun()
 
     tab_inv, tab_add, tab_orders, tab_subs, tab_set, tab_ai = st.tabs([
-        "📦 إدارة المخزون الكاملة (تعديل/إضافة أعمدة)", 
-        "➕ إضافة كتاب جديد", 
+        "📦 إدارة المخزون الكاملة", 
+        "➕ إضافة كتاب جديد (مع رفع الصور)", 
         "📋 طلبات العملاء", 
         "👥 الزوار المسجلون", 
-        "⚙️ التحكم في مظهر وعناوين الموقع", 
+        "⚙️ التحكم في المظهر والعناوين", 
         "🤖 مساعد الإدارة الذكي"
     ])
 
-    # 1. إدارة المخزون الكاملة (تعديل، حذف، إضافة أعمدة مباشرة من الجدول)
     with tab_inv:
         st.markdown("### 📦 التحكم الكامل في جدول الكتب والمخزون")
-        st.info("💡 يمكنك تعديل أي خلية مباشرة (الأسعار، الأسماء، الأقسام)، أو النقر على علامة (+) في الجدول لإضافة سطر جديد، أو حذف أي كتاب، وسيتم حفظه فوراً في الموقع!")
         if not st.session_state.inventory.empty:
             edited_df = st.data_editor(st.session_state.inventory, use_container_width=True, num_rows="dynamic")
             if st.button("💾 حفظ التعديلات الشاملة على المخزون"):
@@ -166,9 +169,8 @@ if st.session_state.admin_logged_in:
         else:
             st.warning("المخزون فارغ حالياً.")
 
-    # 2. إضافة كتاب جديد بجميع التفاصيل
     with tab_add:
-        st.markdown("### ➕ إضافة كتاب أو متن جديد بجميع البيانات")
+        st.markdown("### ➕ إضافة كتاب أو متن جديد (اختر الصورة من جهازك مباشرة)")
         with st.form("add_book_form"):
             c_title = st.text_input("عنوان الكتاب:")
             c_author = st.text_input("المؤلف / المحقق:")
@@ -177,10 +179,20 @@ if st.session_state.admin_logged_in:
             c_price = st.number_input("سعر البيع (جنيه):", min_value=0.0, value=100.0)
             c_qty = st.number_input("الكمية المتوفرة:", min_value=1, value=10)
             c_cat = st.selectbox("التصنيف / القسم:", ["مصاحف القراءات", "المتون", "الشروحات", "الأبحاث والرسائل"])
-            c_img = st.text_input("رابط صورة الغلاف (URL):", value="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80")
+            
+            # أداة رفع الصورة من الجهاز مباشرة
+            uploaded_image = st.file_uploader("اختر صورة الغلاف من جهازك (PNG / JPG):", type=["png", "jpg", "jpeg"])
             
             if st.form_submit_button("✅ إضافة الكتاب للمتجر فوراً"):
                 if c_title:
+                    # حفظ الصورة المرفوعة محلياً إذا تم اختيارها
+                    img_path = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80"
+                    if uploaded_image is not None:
+                        img_saved_path = os.path.join("uploaded_images", uploaded_image.name)
+                        with open(img_saved_path, "wb") as f:
+                            f.write(uploaded_image.getbuffer())
+                        img_path = img_saved_path
+
                     new_id = len(st.session_state.inventory) + 1
                     new_row = pd.DataFrame([{
                         "رقم_الكتاب": new_id,
@@ -191,15 +203,14 @@ if st.session_state.admin_logged_in:
                         "سعر البيع": c_price,
                         "الكمية": c_qty,
                         "التصنيف": c_cat,
-                        "صورة_الغلاف": c_img
+                        "صورة_الغلاف": img_path
                     }])
                     st.session_state.inventory = pd.concat([st.session_state.inventory, new_row], ignore_index=True)
-                    st.success(f"تمت إضافة كتاب '{c_title}' بنجاح!")
+                    st.success(f"تمت إضافة كتاب '{c_title}' بنجاح مع صورته!")
                     st.rerun()
                 else:
                     st.error("يرجى إدخال عنوان الكتاب على الأقل.")
 
-    # 3. الطلبات
     with tab_orders:
         st.markdown("### 📋 طلبات الشراء الواردة")
         if st.session_state.orders:
@@ -207,7 +218,6 @@ if st.session_state.admin_logged_in:
         else:
             st.info("لا توجد طلبات جديدة حالياً.")
 
-    # 4. الزوار
     with tab_subs:
         st.markdown("### 👥 الزوار والعملاء المسجلون")
         if st.session_state.subscribers:
@@ -215,13 +225,12 @@ if st.session_state.admin_logged_in:
         else:
             st.info("لا توجد بيانات مسجلة للزوار.")
 
-    # 5. التحكم الكامل في الهوية، العناوين، الخلفية، والبانر
     with tab_set:
         st.markdown("### ⚙️ التحكم في مظهر، ألوان، وعناوين الموقع بالكامل")
         with st.form("design_form"):
             new_title_site = st.text_input("عنوان الموقع الرئيسي في الأعلى:", value=st.session_state.site_settings['site_title'])
-            bg_input = st.text_input("لون خلفية الموقع (Hex Color مثل #F8FAF9 أو #FFFFFF):", value=st.session_state.site_settings['bg_color'])
-            theme_input = st.text_input("لون الهوية الأساسي (Hex Color مثل #0B3C26 أو #1E3A8A):", value=st.session_state.site_settings['theme_color'])
+            bg_input = st.text_input("لون خلفية الموقع (Hex Color مثل #F8FAF9):", value=st.session_state.site_settings['bg_color'])
+            theme_input = st.text_input("لون الهوية الأساسي (Hex Color مثل #0B3C26):", value=st.session_state.site_settings['theme_color'])
             banner_input = st.text_input("رابط صورة البانر الرئيسي في الأعلى:", value=st.session_state.site_settings['banner_image'])
             wa_input = st.text_input("رقم الواتساب للتواصل:", value=st.session_state.site_settings['whatsapp_number'])
             ship_input = st.number_input("تكلفة الشحن الثابتة:", value=float(st.session_state.site_settings['shipping_cost']))
@@ -230,7 +239,7 @@ if st.session_state.admin_logged_in:
             new_adm = st.text_input("تغيير اسم دخول المدير:", value=st.session_state.site_settings['admin_name'])
             new_pas = st.text_input("تغيير الرقم السري للمدير:", value=st.session_state.site_settings['admin_password'], type="password")
             
-            if st.form_submit_button("🎨 حفظ وتطبيق كافة التعديلات الشاملة فوراً"):
+            if st.form_submit_button("🎨 حفظ وتطبيق كافة التعديلات فوراً"):
                 st.session_state.site_settings['site_title'] = new_title_site
                 st.session_state.site_settings['bg_color'] = bg_input
                 st.session_state.site_settings['theme_color'] = theme_input
@@ -242,7 +251,6 @@ if st.session_state.admin_logged_in:
                 st.success("تم تحديث إعدادات وعناوين ومظهر الموقع بالكامل بنجاح!")
                 st.rerun()
 
-    # 6. المساعد الذكي
     with tab_ai:
         st.markdown("### 🤖 مساعد الإدارة الذكي")
         for chat in st.session_state.admin_chat_history:
@@ -263,7 +271,6 @@ if st.session_state.admin_logged_in:
 # 🛍️ واجهة المتجر الطبيعية (للعملاء والزوار)
 # =============================================================
 else:
-    # شريط صور الكتب المتحرك في الأعلى
     if not st.session_state.inventory.empty:
         slider_html = '<div class="slider-container" id="autoSlider">'
         for idx, book in st.session_state.inventory.iterrows():
