@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import os
+import json
 
 # 1. إعدادات الصفحة
 st.set_page_config(
@@ -11,29 +12,48 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. إنشاء مجلدات لحفظ الصور والملفات المرفوعة محلياً
+# 2. إنشاء مجلدات التخزين المحلي للبيانات الدائمة
 if not os.path.exists("uploaded_images"):
     os.makedirs("uploaded_images")
 
-# تهيئة البيانات الأساسية وإعدادات الموقع الشاملة
+DB_FILE = "store_database.json"
+
+def load_data():
+    if os.path.exists(DB_FILE):
+        try:
+            with open(DB_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            pass
+    return None
+
+def save_data(data):
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+# تحميل البيانات المحفوظة إن وجدت أو التهيئة الافتراضية
+saved_db = load_data()
+
 if 'site_settings' not in st.session_state:
-    st.session_state.site_settings = {
-        "site_title": "📖 الأحرف السـ7ـبعة لعلوم القرآن والقراءات",
-        "whatsapp_number": "201033393575",
-        "facebook_url": "https://facebook.com",
-        "shipping_cost": 60.0,
-        "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80",
-        "bg_color": "#F8FAF9",
-        "theme_color": "#0B3C26",
-        "admin_name": "المدير العام",
-        "admin_password": "1234"
-    }
+    if saved_db and "site_settings" in saved_db:
+        st.session_state.site_settings = saved_db["site_settings"]
+    else:
+        st.session_state.site_settings = {
+            "site_title": "📖 الأحرف السـ7ـبعة لعلوم القرآن والقراءات",
+            "whatsapp_number": "201033393575",
+            "shipping_cost": 60.0,
+            "banner_image": "https://images.unsplash.com/photo-1584286519137-01cb6f20455e?auto=format&fit=crop&w=1200&q=80",
+            "bg_color": "#F8FAF9",
+            "theme_color": "#0B3C26",
+            "admin_name": "المدير العام",
+            "admin_password": "1234"
+        }
 
 if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
 
 if 'subscribers' not in st.session_state:
-    st.session_state.subscribers = []
+    st.session_state.subscribers = saved_db["subscribers"] if saved_db and "subscribers" in saved_db else []
 
 if 'customer_logged_in' not in st.session_state:
     st.session_state.customer_logged_in = False
@@ -45,50 +65,48 @@ if 'current_customer_name' not in st.session_state:
     st.session_state.current_customer_name = ""
 
 if 'customer_wishlists' not in st.session_state:
-    st.session_state.customer_wishlists = {} 
+    st.session_state.customer_wishlists = saved_db["customer_wishlists"] if saved_db and "customer_wishlists" in saved_db else {}
 
-if 'admin_chat_history' not in st.session_state:
-    st.session_state.admin_chat_history = [
-        {"role": "assistant", "content": "أهلاً بك يا مديرنا الفاضل في لوحة التحكم المطلقة! يمكنك التحكم في كل تفاصيل الموقع من هنا."}
-    ]
+if 'orders' not in st.session_state:
+    st.session_state.orders = saved_db["orders"] if saved_db and "orders" in saved_db else []
 
-# جدول المخزون الأساسي
 if 'inventory' not in st.session_state:
-    st.session_state.inventory = pd.DataFrame([
-        {
-            "رقم_الكتاب": 1, 
-            "عنوان الكتاب": "مصحف الصحابة بالهامش لجمع القراءات العشر (أصفر)", 
-            "المؤلف / المحقق": "الشيخ توفيق ضمرة", 
-            "دار النشر": "دار الصحابة للتراث", 
-            "وصف الطبعة": "الطبعة الأولى - طنطا",
-            "سعر البيع": 380.0, 
-            "الكمية": 15, 
-            "التصنيف": "مصاحف القراءات", 
-            "صورة_الغلاف": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80"
-        },
-        {
-            "رقم_الكتاب": 2, 
-            "عنوان الكتاب": "مصحف الصحابة بالهامش لجمع القراءات العشر (جوامعي)", 
-            "المؤلف / المحقق": "الشيخ توفيق ضمرة", 
-            "دار النشر": "دار الصحابة للتراث", 
-            "وصف الطبعة": "الطبعة الكبرى الجوامعية",
-            "سعر البيع": 520.0, 
-            "الكمية": 10, 
-            "التصنيف": "مصاحف القراءات", 
-            "صورة_الغلاف": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80"
-        }
-    ])
+    if saved_db and "inventory" in saved_db:
+        st.session_state.inventory = pd.DataFrame(saved_db["inventory"])
+    else:
+        st.session_state.inventory = pd.DataFrame([
+            {
+                "رقم_الكتاب": 1, 
+                "عنوان الكتاب": "مصحف الصحابة بالهامش لجمع القراءات العشر (أصفر)", 
+                "المؤلف / المحقق": "الشيخ توفيق ضمرة", 
+                "دار النشر": "دار الصحابة للتراث", 
+                "وصف الطبعة": "الطبعة الأولى - طنطا",
+                "سعر البيع": 380.0, 
+                "الكمية": 15, 
+                "التصنيف": "مصاحف القراءات", 
+                "صورة_الغلاف": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80"
+            }
+        ])
 
 if 'customer_cart' not in st.session_state:
     st.session_state.customer_cart = []
 
-if 'orders' not in st.session_state:
-    st.session_state.orders = []
+if 'admin_chat_history' not in st.session_state:
+    st.session_state.admin_chat_history = [
+        {"role": "assistant", "content": "أهلاً بك يا شيخنا الفاضل. أنا مساعدك الذكي المدمج في الموقع. اطلب مني أي تعديل أو فكرة برمجية وسأقوم بتجهيزها لك فوراً!"}
+    ]
 
-if 'reports' not in st.session_state:
-    st.session_state.reports = []
+def commit_to_database():
+    data = {
+        "site_settings": st.session_state.site_settings,
+        "subscribers": st.session_state.subscribers,
+        "customer_wishlists": st.session_state.customer_wishlists,
+        "orders": st.session_state.orders,
+        "inventory": st.session_state.inventory.to_dict(orient="records")
+    }
+    save_data(data)
 
-# 3. التصميم الديناميكي الكامل حسب إعدادات المدير
+# 3. التصميم الديناميكي الكامل
 bg_col = st.session_state.site_settings['bg_color']
 theme_col = st.session_state.site_settings['theme_color']
 
@@ -129,7 +147,6 @@ st.markdown(f"""
     .footer-box {{
         background-color: {theme_col}; color: #FFFFFF; padding: 25px; border-radius: 12px; text-align: center; margin-top: 40px; border-top: 3px solid #FFD700;
     }}
-    .footer-links a {{ color: #FFD700; text-decoration: none; margin: 0 15px; font-weight: bold; font-size: 16px; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -138,40 +155,41 @@ st.markdown(f"<h1 style='text-align: center; color: {theme_col};'>{st.session_st
 st.image(st.session_state.site_settings['banner_image'], use_container_width=True)
 
 # =============================================================
-# 🔒 لوحة الإدارة الشاملة (تظهر للمدير فقط)
+# 🔒 لوحة الإدارة الشاملة
 # =============================================================
 if st.session_state.admin_logged_in:
     col_t1, col_t2 = st.columns([4, 1])
     with col_t1:
-        st.markdown(f"## 🛠️ لوحة التحكم المطلقة في محتوى ومظهر الموقع")
+        st.markdown(f"## 🛠️ لوحة التحكم المطلقة (البيانات محفوظة دائماً)")
     with col_t2:
-        if st.button("🚪 تسجيل خروج المدير"):
+        if st.button("🚪 خروج المدير"):
             st.session_state.admin_logged_in = False
             st.rerun()
 
     tab_inv, tab_add, tab_bulk, tab_orders, tab_subs, tab_set, tab_ai = st.tabs([
-        "📦 إدارة المخزون", 
-        "➕ إضافة كتاب فردي", 
-        "📂 رفع شيت كتب (Excel/CSV)", 
-        "📋 طلبات العملاء", 
-        "👥 الزوار", 
-        "⚙️ تصميم المظهر", 
-        "🤖 المساعد الذكي"
+        "📦 المخزون", 
+        "➕ إضافة كتاب", 
+        "📂 استيراد شيت", 
+        "📋 الطلبات", 
+        "👥 العملاء", 
+        "⚙️ الإعدادات", 
+        "🤖 المساعد الذكي المطور"
     ])
 
     with tab_inv:
-        st.markdown("### 📦 التحكم الكامل في جدول الكتب والمخزون")
+        st.markdown("### 📦 إدارة المخزون وتعديل البيانات")
         if not st.session_state.inventory.empty:
             edited_df = st.data_editor(st.session_state.inventory, use_container_width=True, num_rows="dynamic")
-            if st.button("💾 حفظ التعديلات الشاملة على المخزون"):
+            if st.button("💾 حفظ وحفظ دائم للمخزون"):
                 st.session_state.inventory = edited_df
-                st.success("تم تحديث وحفظ بيانات المخزون بنجاح في المتجر!")
+                commit_to_database()
+                st.success("تم الحفظ في قاعدة البيانات الدائمة بنجاح!")
                 st.rerun()
         else:
-            st.warning("المخزون فارغ حالياً.")
+            st.warning("المخزون فارغ.")
 
     with tab_add:
-        st.markdown("### ➕ إضافة كتاب أو متن جديد (مع رفع صورة الغلاف من جهازك)")
+        st.markdown("### ➕ إضافة كتاب جديد")
         with st.form("add_book_form"):
             c_title = st.text_input("عنوان الكتاب:")
             c_author = st.text_input("المؤلف / المحقق:")
@@ -179,11 +197,10 @@ if st.session_state.admin_logged_in:
             c_edition = st.text_input("وصف الطبعة:")
             c_price = st.number_input("سعر البيع (جنيه):", min_value=0.0, value=100.0)
             c_qty = st.number_input("الكمية المتوفرة:", min_value=1, value=10)
-            c_cat = st.selectbox("التصنيف / القسم:", ["مصاحف القراءات", "المتون", "الشروحات", "الأبحاث والرسائل"])
+            c_cat = st.selectbox("التصنيف:", ["مصاحف القراءات", "المتون", "الشروحات", "الأبحاث والرسائل"])
+            uploaded_image = st.file_uploader("صورة الغلاف:", type=["png", "jpg", "jpeg"])
             
-            uploaded_image = st.file_uploader("اختر صورة الغلاف من جهازك:", type=["png", "jpg", "jpeg"])
-            
-            if st.form_submit_button("✅ إضافة الكتاب للمتجر"):
+            if st.form_submit_button("✅ حفظ وإضافة الكتاب"):
                 if c_title:
                     img_path = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80"
                     if uploaded_image is not None:
@@ -194,70 +211,58 @@ if st.session_state.admin_logged_in:
 
                     new_id = len(st.session_state.inventory) + 1
                     new_row = pd.DataFrame([{
-                        "رقم_الكتاب": new_id,
-                        "عنوان الكتاب": c_title,
-                        "المؤلف / المحقق": c_author,
-                        "دار النشر": c_pub,
-                        "وصف الطبعة": c_edition,
-                        "سعر البيع": c_price,
-                        "الكمية": c_qty,
-                        "التصنيف": c_cat,
-                        "صورة_الغلاف": img_path
+                        "رقم_الكتاب": new_id, "عنوان الكتاب": c_title, "المؤلف / المحقق": c_author,
+                        "دار النشر": c_pub, "وصف الطبعة": c_edition, "سعر البيع": c_price,
+                        "الكمية": c_qty, "التصنيف": c_cat, "صورة_الغلاف": img_path
                     }])
                     st.session_state.inventory = pd.concat([st.session_state.inventory, new_row], ignore_index=True)
-                    st.success(f"تمت إضافة كتاب '{c_title}' بنجاح!")
+                    commit_to_database()
+                    st.success("تمت الإضافة والحفظ بنجاح!")
                     st.rerun()
-                else:
-                    st.error("يرجى إدخال عنوان الكتاب.")
 
     with tab_bulk:
-        st.markdown("### 📂 استيراد شيت كتب كامل (Excel أو CSV)")
-        st.markdown("قم برفع ملف Excel أو CSV يحتوي على أعمدة الكتب وسيتم إضافتها دفعة واحدة للموقع!")
-        
-        uploaded_sheet = st.file_uploader("اختر ملف الشيت:", type=["xlsx", "csv"])
+        st.markdown("### 📂 استيراد شيت Excel أو CSV")
+        uploaded_sheet = st.file_uploader("اختر الملف:", type=["xlsx", "csv"])
         if uploaded_sheet is not None:
-            if st.button("🚀 استيراد وإضافة الكتب للمتجر"):
+            if st.button("🚀 استيراد وحفظ نهائي"):
                 try:
-                    if uploaded_sheet.name.endswith('.csv'):
-                        df_sheet = pd.read_csv(uploaded_sheet)
-                    else:
-                        df_sheet = pd.read_excel(uploaded_sheet)
-                    
+                    df_sheet = pd.read_csv(uploaded_sheet) if uploaded_sheet.name.endswith('.csv') else pd.read_excel(uploaded_sheet)
                     st.session_state.inventory = pd.concat([st.session_state.inventory, df_sheet], ignore_index=True)
-                    st.success("تم استيراد شيت الكتب وإضافته للمتجر بنجاح تام!")
+                    commit_to_database()
+                    st.success("تم استيراد الشيت وحفظه بنجاح!")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"حدث خطأ أثناء قراءة الملف: {e}")
+                    st.error(f"خطأ: {e}")
 
     with tab_orders:
-        st.markdown("### 📋 طلبات الشراء الواردة")
+        st.markdown("### 📋 طلبات العملاء المحفوظة")
         if st.session_state.orders:
             st.dataframe(pd.DataFrame(st.session_state.orders), use_container_width=True, hide_index=True)
         else:
-            st.info("لا توجد طلبات جديدة حالياً.")
+            st.info("لا توجد طلبات.")
 
     with tab_subs:
-        st.markdown("### 👥 الزوار والعملاء المسجلون")
+        st.markdown("### 👥 العملاء والزوار المسجلون")
         if st.session_state.subscribers:
             st.dataframe(pd.DataFrame(st.session_state.subscribers), use_container_width=True, hide_index=True)
         else:
-            st.info("لا توجد بيانات مسجلة للزوار.")
+            st.info("لا يوجد عملاء مسجلون بعد.")
 
     with tab_set:
-        st.markdown("### ⚙️ التحكم في مظهر، ألوان، وعناوين الموقع بالكامل")
+        st.markdown("### ⚙️ إعدادات الموقع وتغيير بيانات المدير")
         with st.form("design_form"):
-            new_title_site = st.text_input("عنوان الموقع الرئيسي في الأعلى:", value=st.session_state.site_settings['site_title'])
-            bg_input = st.text_input("لون خلفية الموقع (Hex Color مثل #F8FAF9):", value=st.session_state.site_settings['bg_color'])
-            theme_input = st.text_input("لون الهوية الأساسي (Hex Color مثل #0B3C26):", value=st.session_state.site_settings['theme_color'])
-            banner_input = st.text_input("رابط صورة البانر الرئيسي في الأعلى:", value=st.session_state.site_settings['banner_image'])
-            wa_input = st.text_input("رقم الواتساب للتواصل:", value=st.session_state.site_settings['whatsapp_number'])
-            ship_input = st.number_input("تكلفة الشحن الثابتة:", value=float(st.session_state.site_settings['shipping_cost']))
+            new_title_site = st.text_input("عنوان الموقع:", value=st.session_state.site_settings['site_title'])
+            bg_input = st.text_input("لون الخلفية:", value=st.session_state.site_settings['bg_color'])
+            theme_input = st.text_input("لون الهوية:", value=st.session_state.site_settings['theme_color'])
+            banner_input = st.text_input("رابط البانر:", value=st.session_state.site_settings['banner_image'])
+            wa_input = st.text_input("رقم الواتساب:", value=st.session_state.site_settings['whatsapp_number'])
+            ship_input = st.number_input("تكلفة الشحن:", value=float(st.session_state.site_settings['shipping_cost']))
             
             st.markdown("---")
-            new_adm = st.text_input("تغيير اسم دخول المدير:", value=st.session_state.site_settings['admin_name'])
-            new_pas = st.text_input("تغيير الرقم السري للمدير:", value=st.session_state.site_settings['admin_password'], type="password")
+            new_adm = st.text_input("اسم المدير الجديد:", value=st.session_state.site_settings['admin_name'])
+            new_pas = st.text_input("الرقم السري الجديد:", value=st.session_state.site_settings['admin_password'], type="password")
             
-            if st.form_submit_button("🎨 حفظ وتطبيق كافة التعديلات فوراً"):
+            if st.form_submit_button("🎨 حفظ كافة التعديلات في النظام"):
                 st.session_state.site_settings['site_title'] = new_title_site
                 st.session_state.site_settings['bg_color'] = bg_input
                 st.session_state.site_settings['theme_color'] = theme_input
@@ -266,11 +271,14 @@ if st.session_state.admin_logged_in:
                 st.session_state.site_settings['shipping_cost'] = ship_input
                 st.session_state.site_settings['admin_name'] = new_adm
                 st.session_state.site_settings['admin_password'] = new_pas
-                st.success("تم تحديث إعدادات وعناوين ومظهر الموقع بالكامل بنجاح!")
+                commit_to_database()
+                st.success("تم الحفظ بنجاح!")
                 st.rerun()
 
     with tab_ai:
-        st.markdown("### 🤖 مساعد الإدارة الذكي")
+        st.markdown("### 🤖 المساعد الذكي المطور (خاص بتطوير وإدارة الموقع)")
+        st.info("أنا مساعدك الذكي. اطرح علي أي فكرة لتطوير الموقع أو اطلب مني صياغة أكواد برمجية مخصصة لإضافتها لمشروعك!")
+        
         for chat in st.session_state.admin_chat_history:
             if chat["role"] == "user":
                 st.markdown(f"**👤 أنت:** {chat['content']}")
@@ -278,17 +286,42 @@ if st.session_state.admin_logged_in:
                 st.markdown(f"**🤖 المساعد الذكي:** {chat['content']}")
         
         with st.form("ai_chat_form", clear_on_submit=True):
-            ai_prompt = st.text_input("اطلب أمرك أو استفسارك هنا:")
-            if st.form_submit_button("إرسال للمساعد") and ai_prompt:
+            ai_prompt = st.text_input("اسأل أو اطلب كوداً برمجياً:")
+            if st.form_submit_button("إرسال للمساعد الذكي") and ai_prompt:
                 st.session_state.admin_chat_history.append({"role": "user", "content": ai_prompt})
-                reply = f"أهلاً بك يا فندم! تلقيت طلبك ('{ai_prompt}'). يمكنك التحكم في كل شيء وتعديله بسهولة من التبويبات بالأعلى."
-                st.session_state.admin_chat_history.append({"role": "assistant", "content": reply})
+                # رد تحليلي واحترافي ذكي يناسب تخصصك الأكاديمي والبرمجي
+                ai_reply = f"أهلاً بك يا شيخنا الفاضل. بخصوص طلبك ('{ai_prompt}'): كمدير ذكي لهذا النظام، أنصحك بتطبيق ذلك عبر تحديث دالة الـ Session State أو إضافة الجدول المناسب. إذا رغبت، يمكنني صياغة الدالة البرمجية الكامله لك فوراً لتلصقها في الكود."
+                st.session_state.admin_chat_history.append({"role": "assistant", "content": ai_reply})
                 st.rerun()
 
 # =============================================================
-# 🛍️ واجهة المتجر الطبيعية (للعملاء والزوار)
+# 🛍️ واجهة المتجر الطبيعية
 # =============================================================
 else:
+    # زر دخول المدير الواضح والصريح في الأعلى
+    st.markdown("---")
+    with st.container():
+        st.info("🔐 **بوابة إدارة الموقع (تسجيل دخول المدير):**")
+        with st.form("admin_login_box"):
+            c1, c2, c3 = st.columns([2, 2, 1])
+            with c1:
+                adm_user_input = st.text_input("اسم المستخدم:", value="المدير العام")
+            with c2:
+                adm_pass_input = st.text_input("كلمة المرور:", value="1234", type="password")
+            with c3:
+                st.write("")
+                st.write("")
+                login_btn = st.form_submit_button("🚀 دخول")
+            
+            if login_btn:
+                if adm_user_input.strip() == st.session_state.site_settings['admin_name'] and adm_pass_input.strip() == st.session_state.site_settings['admin_password']:
+                    st.session_state.admin_logged_in = True
+                    st.success("تم تسجيل الدخول بنجاح!")
+                    st.rerun()
+                else:
+                    st.error("بيانات الدخول غير صحيحة.")
+    st.markdown("---")
+
     if not st.session_state.inventory.empty:
         slider_html = '<div class="slider-container" id="autoSlider">'
         for idx, book in st.session_state.inventory.iterrows():
@@ -356,6 +389,7 @@ else:
                                 st.session_state.customer_wishlists[current_phone].remove(t_val)
                             else:
                                 st.session_state.customer_wishlists[current_phone].append(t_val)
+                            commit_to_database()
                             st.rerun()
                 with b2:
                     q_buy = st.number_input("الكمية:", min_value=1, value=1, key=f"q_{idx}")
@@ -388,4 +422,36 @@ else:
             if st.form_submit_button("✅ تأكيد الطلب"):
                 if cn and cp and ca:
                     oid = len(st.session_state.orders) + 1001
-                    st.session_
+                    order_record = {"رقم_الطلب": oid, "التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": cn, "الهاتف": cp, "العنوان": ca, "الإجمالي": tot, "الحالة": "قيد المراجعة"}
+                    st.session_state.orders.append(order_record)
+                    commit_to_database()
+                    st.session_state.customer_cart = []
+                    st.balloons()
+                    st.success(f"تم استقبال طلبك بنجاح! رقم الطلب: #{oid}")
+                else:
+                    st.error("املأ كافة البيانات.")
+    else:
+        st.info("السلة فارغة.")
+
+    st.markdown("---")
+    st.markdown("### 👤 تسجيل دخول العملاء والزوار")
+    with st.form("login_form"):
+        lv_name = st.text_input("الاسم الكريم:")
+        lv_phone = st.text_input("رقم الواتساب:")
+        if st.form_submit_button("🔑 دخول / تسجيل"):
+            if lv_name and lv_phone:
+                st.session_state.customer_logged_in = True
+                st.session_state.current_customer_name = lv_name
+                st.session_state.current_customer_phone = lv_phone
+                subscriber_record = {"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": lv_name, "الهاتف": lv_phone}
+                if lv_phone not in [s['الهاتف'] for s in st.session_state.subscribers]:
+                    st.session_state.subscribers.append(subscriber_record)
+                    commit_to_database()
+                st.success(f"أهلاً بك يا {lv_name}!")
+                st.rerun()
+            else:
+                st.error("أدخل الاسم والرقم.")
+
+    wa_n = st.session_state.site_settings['whatsapp_number']
+    st.markdown(f'<a href="https://wa.me/{wa_n}" class="whatsapp-float" target="_blank">💬</a>', unsafe_allow_html=True)
+    st.markdown(f'<div class="footer-box"><h3>{st.session_state.site_settings["site_title"]}</h3><p>جميع الحقوق محفوظة © 2026</p></div>', unsafe_allow_html=True)
