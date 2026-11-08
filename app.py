@@ -212,7 +212,7 @@ if st.session_state.admin_logged_in:
 
     with tab_bulk:
         st.markdown("### 📂 استيراد شيت كتب كامل (Excel أو CSV)")
-        st.markdown("قم برفع ملف Excel أو CSV يحتوي على أعمدة الكتب (مثل: عنوان الكتاب، المؤلف، سعر البيع، الكمية، التصنيف) وسيتم إضافتها دفعة واحدة للموقع!")
+        st.markdown("قم برفع ملف Excel أو CSV يحتوي على أعمدة الكتب وسيتم إضافتها دفعة واحدة للموقع!")
         
         uploaded_sheet = st.file_uploader("اختر ملف الشيت:", type=["xlsx", "csv"])
         if uploaded_sheet is not None:
@@ -223,7 +223,6 @@ if st.session_state.admin_logged_in:
                     else:
                         df_sheet = pd.read_excel(uploaded_sheet)
                     
-                    # دمج الشيت مع المخزون الحالي
                     st.session_state.inventory = pd.concat([st.session_state.inventory, df_sheet], ignore_index=True)
                     st.success("تم استيراد شيت الكتب وإضافته للمتجر بنجاح تام!")
                     st.rerun()
@@ -389,36 +388,4 @@ else:
             if st.form_submit_button("✅ تأكيد الطلب"):
                 if cn and cp and ca:
                     oid = len(st.session_state.orders) + 1001
-                    st.session_state.orders.append({"رقم_الطلب": oid, "التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": cn, "الهاتف": cp, "العنوان": ca, "الإجمالي": tot, "الحالة": "قيد المراجعة"})
-                    st.session_state.customer_cart = []
-                    st.balloons()
-                    st.success(f"تم استقبال طلبك! رقم الطلب: #{oid}")
-                else:
-                    st.error("املأ كافة البيانات.")
-    else:
-        st.info("السلة فارغة.")
-
-    st.markdown("---")
-    st.markdown("### 👤 حساب العميل أو تسجيل الدخول (ودخول المدير)")
-    with st.form("login_form"):
-        lv_name = st.text_input("الاسم الكريم:")
-        lv_phone = st.text_input("رقم الواتساب:")
-        if st.form_submit_button("🔑 دخول / تسجيل"):
-            if lv_name.strip() == st.session_state.site_settings['admin_name'] and lv_phone.strip() == st.session_state.site_settings['admin_password']:
-                st.session_state.admin_logged_in = True
-                st.success("مرحباً بك يا مدير الموقع!")
-                st.rerun()
-            elif lv_name and lv_phone:
-                st.session_state.customer_logged_in = True
-                st.session_state.current_customer_name = lv_name
-                st.session_state.current_customer_phone = lv_phone
-                if lv_phone not in [s['الهاتف'] for s in st.session_state.subscribers]:
-                    st.session_state.subscribers.append({"التاريخ": datetime.date.today().strftime("%Y-%m-%d"), "الاسم": lv_name, "الهاتف": lv_phone})
-                st.success(f"أهلاً بك يا {lv_name}!")
-                st.rerun()
-            else:
-                st.error("أدخل الاسم والرقم.")
-
-    wa_n = st.session_state.site_settings['whatsapp_number']
-    st.markdown(f'<a href="https://wa.me/{wa_n}" class="whatsapp-float" target="_blank">💬</a>', unsafe_allow_html=True)
-    st.markdown(f'<div class="footer-box"><h3>{st.session_state.site_settings["site_title"]}</h3><p>جميع الحقوق محفوظة © 2026</p></div>', unsafe_allow_html=True
+                    st.session_
