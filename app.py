@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. إنشاء مجلد لحفظ الصور المرفوعة محلياً إذا لم يكن موجوداً
+# 2. إنشاء مجلدات لحفظ الصور والملفات المرفوعة محلياً
 if not os.path.exists("uploaded_images"):
     os.makedirs("uploaded_images")
 
@@ -149,13 +149,14 @@ if st.session_state.admin_logged_in:
             st.session_state.admin_logged_in = False
             st.rerun()
 
-    tab_inv, tab_add, tab_orders, tab_subs, tab_set, tab_ai = st.tabs([
-        "📦 إدارة المخزون الكاملة", 
-        "➕ إضافة كتاب جديد (مع رفع الصور)", 
+    tab_inv, tab_add, tab_bulk, tab_orders, tab_subs, tab_set, tab_ai = st.tabs([
+        "📦 إدارة المخزون", 
+        "➕ إضافة كتاب فردي", 
+        "📂 رفع شيت كتب (Excel/CSV)", 
         "📋 طلبات العملاء", 
-        "👥 الزوار المسجلون", 
-        "⚙️ التحكم في المظهر والعناوين", 
-        "🤖 مساعد الإدارة الذكي"
+        "👥 الزوار", 
+        "⚙️ تصميم المظهر", 
+        "🤖 المساعد الذكي"
     ])
 
     with tab_inv:
@@ -170,7 +171,7 @@ if st.session_state.admin_logged_in:
             st.warning("المخزون فارغ حالياً.")
 
     with tab_add:
-        st.markdown("### ➕ إضافة كتاب أو متن جديد (اختر الصورة من جهازك مباشرة)")
+        st.markdown("### ➕ إضافة كتاب أو متن جديد (مع رفع صورة الغلاف من جهازك)")
         with st.form("add_book_form"):
             c_title = st.text_input("عنوان الكتاب:")
             c_author = st.text_input("المؤلف / المحقق:")
@@ -180,12 +181,10 @@ if st.session_state.admin_logged_in:
             c_qty = st.number_input("الكمية المتوفرة:", min_value=1, value=10)
             c_cat = st.selectbox("التصنيف / القسم:", ["مصاحف القراءات", "المتون", "الشروحات", "الأبحاث والرسائل"])
             
-            # أداة رفع الصورة من الجهاز مباشرة
-            uploaded_image = st.file_uploader("اختر صورة الغلاف من جهازك (PNG / JPG):", type=["png", "jpg", "jpeg"])
+            uploaded_image = st.file_uploader("اختر صورة الغلاف من جهازك:", type=["png", "jpg", "jpeg"])
             
-            if st.form_submit_button("✅ إضافة الكتاب للمتجر فوراً"):
+            if st.form_submit_button("✅ إضافة الكتاب للمتجر"):
                 if c_title:
-                    # حفظ الصورة المرفوعة محلياً إذا تم اختيارها
                     img_path = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80"
                     if uploaded_image is not None:
                         img_saved_path = os.path.join("uploaded_images", uploaded_image.name)
@@ -206,10 +205,30 @@ if st.session_state.admin_logged_in:
                         "صورة_الغلاف": img_path
                     }])
                     st.session_state.inventory = pd.concat([st.session_state.inventory, new_row], ignore_index=True)
-                    st.success(f"تمت إضافة كتاب '{c_title}' بنجاح مع صورته!")
+                    st.success(f"تمت إضافة كتاب '{c_title}' بنجاح!")
                     st.rerun()
                 else:
-                    st.error("يرجى إدخال عنوان الكتاب على الأقل.")
+                    st.error("يرجى إدخال عنوان الكتاب.")
+
+    with tab_bulk:
+        st.markdown("### 📂 استيراد شيت كتب كامل (Excel أو CSV)")
+        st.markdown("قم برفع ملف Excel أو CSV يحتوي على أعمدة الكتب (مثل: عنوان الكتاب، المؤلف، سعر البيع، الكمية، التصنيف) وسيتم إضافتها دفعة واحدة للموقع!")
+        
+        uploaded_sheet = st.file_uploader("اختر ملف الشيت:", type=["xlsx", "csv"])
+        if uploaded_sheet is not None:
+            if st.button("🚀 استيراد وإضافة الكتب للمتجر"):
+                try:
+                    if uploaded_sheet.name.endswith('.csv'):
+                        df_sheet = pd.read_csv(uploaded_sheet)
+                    else:
+                        df_sheet = pd.read_excel(uploaded_sheet)
+                    
+                    # دمج الشيت مع المخزون الحالي
+                    st.session_state.inventory = pd.concat([st.session_state.inventory, df_sheet], ignore_index=True)
+                    st.success("تم استيراد شيت الكتب وإضافته للمتجر بنجاح تام!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"حدث خطأ أثناء قراءة الملف: {e}")
 
     with tab_orders:
         st.markdown("### 📋 طلبات الشراء الواردة")
@@ -402,4 +421,4 @@ else:
 
     wa_n = st.session_state.site_settings['whatsapp_number']
     st.markdown(f'<a href="https://wa.me/{wa_n}" class="whatsapp-float" target="_blank">💬</a>', unsafe_allow_html=True)
-    st.markdown(f'<div class="footer-box"><h3>{st.session_state.site_settings["site_title"]}</h3><p>جميع الحقوق محفوظة © 2026</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="footer-box"><h3>{st.session_state.site_settings["site_title"]}</h3><p>جميع الحقوق محفوظة © 2026</p></div>', unsafe_allow_html=True
